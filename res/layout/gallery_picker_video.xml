@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	     android:layout_width="match_parent"
+	     android:layout_height="match_parent">
+  <ImageView android:id="@+id/thumbnail"
+	     android:layout_width="match_parent"
+	     android:layout_height="match_parent"/>
+
+  <ImageView android:id="@+id/video_mark"
+	     android:layout_width="wrap_content"
+	     android:layout_height="wrap_content"
+	     android:src="@drawable/ic_video_tag"
+	     android:layout_gravity="center"/>
+<!--
+  <TextView android:id="@+id/create_date"
+            android:textSize="30dp"
+	    android:gravity="bottom"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+  <TextView
+	android:id = "@+id/mimetype"
+        android:layout_width="0dip"
+        android:layout_height="0dip"
+	android:visibility="invisible"/>
+  <TextView
+	android:id = "@+id/datapath"
+        android:layout_width="0dip"
+        android:layout_height="0dip"
+	android:visibility="invisible"/>
+-->
+  <TextView
+	android:id = "@+id/media_id"
+        android:layout_width="0dip"
+        android:layout_height="0dip"
+	android:visibility="invisible"/>
+
+</FrameLayout>

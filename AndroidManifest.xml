@@ -1,0 +1,174 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="com.ingenic.glass.camera">
+
+    <!-- <original-package android:name="com.android.camera" /> -->
+    <uses-sdk android:targetSdkVersion="10" android:minSdkVersion="10" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" /> 
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.INTERNET" /> 
+
+    <application android:icon="@drawable/ic_icon"
+            android:name="com.ingenic.glass.camera.CameraAppImpl"
+            android:label="@string/camera_label"
+            android:taskAffinity=""
+            android:theme="@style/ThemeActivity"
+            android:hardwareAccelerated="false">
+        <uses-library android:name="com.google.android.media.effects" android:required="false" />
+        <receiver android:name="com.ingenic.glass.camera.other.CruiseReceiver">
+	    <intent-filter>
+	      <action android:name="com.ingenic.glass.camera.other.subsection"/>
+	      <action android:name="com.ingenic.glass.camera.other.storage_mode"/>
+	      <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+	<receiver android:name="com.ingenic.glass.camera.CameraButtonIntentReceiver">
+	  <!-- IMAGE_CAPTURE be define answer call or capture,
+	       so here priority lower than  InCallBt-->
+	    <intent-filter android:priority="100">
+	      <action android:name="android.media.action.IMAGE_CAPTURE"/>
+	      <action android:name="android.media.action.VIDEO_CAPTURE"/>
+	      <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+        <activity android:name="com.ingenic.glass.camera.PhotoActivity"
+                android:label="@string/video_camera_label"
+                android:configChanges="orientation|screenSize|keyboardHidden"
+                android:icon="@drawable/ic_icon"
+                android:screenOrientation="landscape"
+                android:clearTaskOnLaunch="true"
+		android:launchMode="singleTask"
+                android:windowSoftInputMode="stateAlwaysHidden|adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.IMAGE_CAPTURE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+	<activity android:name="com.ingenic.glass.camera.VideoActivity"
+		  android:label="@string/video_recorder_label"
+		  android:configChanges="orientation|screenSize|keyboardHidden"
+		  android:screenOrientation="landscape"
+		  android:clearTaskOnLaunch="true"
+		  android:launchMode="singleTask"
+		  android:icon="@drawable/video"
+		  android:windowSoftInputMode="stateAlwaysHidden|adjustPan">
+	  <intent-filter>
+	    <action android:name="android.intent.action.MAIN" />
+	    <category android:name="android.intent.category.DEFAULT" />
+	    <category android:name="android.intent.category.LAUNCHER" />
+	  </intent-filter>
+	  <intent-filter>
+	    <action android:name="android.media.action.VIDEO_CAPTURE" />
+	    <category android:name="android.intent.category.DEFAULT" />
+	  </intent-filter>
+        </activity>
+
+        <activity android:name="com.ingenic.glass.camera.panorama.PanoramaActivity"
+                android:label="@string/pano_dialog_title"
+                android:configChanges="orientation|screenSize|keyboardHidden"
+                android:screenOrientation="landscape"
+                android:clearTaskOnLaunch="true"
+                android:windowSoftInputMode="stateAlwaysHidden|adjustPan">
+        </activity>
+	<activity android:name="com.ingenic.glass.camera.gallery.Gallery"
+                android:label="@string/gallery_picker_label"
+                android:configChanges="orientation|keyboardHidden"
+		android:screenOrientation="landscape"
+                android:icon="@drawable/ic_gallery_icon"
+                android:clearTaskOnLaunch="true"
+                android:taskAffinity="android.task.pictures">
+	  <intent-filter>
+	    <action android:name="android.intent.action.MAIN" />
+	    <category android:name="android.intent.category.DEFAULT" />
+	    <category android:name="android.intent.category.LAUNCHER" />
+	  </intent-filter>
+	  <intent-filter>
+	    <action android:name="android.intent.action.PICK" />
+	    <category android:name="android.intent.category.DEFAULT" />
+	    <data android:mimeType="image/*" />
+	    <data android:mimeType="video/*" />
+	  </intent-filter>
+        </activity>
+        <activity android:name="com.ingenic.glass.camera.gallery.GalleryPicker"
+                android:label="@string/gallery_picker_label"
+                android:configChanges="orientation|keyboardHidden"
+		android:screenOrientation="landscape"
+                android:icon="@drawable/ic_gallery_icon"
+                android:clearTaskOnLaunch="true"
+                android:taskAffinity="android.task.pictures">
+     
+        </activity>
+
+        <activity android:name="com.ingenic.glass.camera.gallery.MovieActivity"
+		android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+		android:screenOrientation="landscape"
+                android:configChanges="orientation|keyboardHidden|screenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.View" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="rtsp" />
+             </intent-filter>
+             <intent-filter>
+                <action android:name="android.intent.action.View" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="rtsp" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="video/mpeg4" />
+                <data android:mimeType="video/mp4" />
+                <data android:mimeType="video/3gp" />
+                <data android:mimeType="video/3gpp" />
+                <data android:mimeType="video/3gpp2" />
+                <data android:mimeType="video/webm" />
+                <data android:mimeType="application/sdp" />
+             </intent-filter>
+             <intent-filter>
+                !-- HTTP live support -->
+                <action android:name="android.intent.action.View" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:mimeType="audio/x-mpegurl" />
+                <data android:mimeType="audio/mpegurl" />
+                <data android:mimeType="application/vnd.apple.mpegurl" />
+                <data android:mimeType="application/x-mpegurl" />
+             </intent-filter>
+        </activity>
+
+        <activity android:name="com.ingenic.glass.camera.live.CameraLive"
+                android:label="@string/camera_live_label"
+                android:configChanges="orientation|keyboardHidden"
+		android:screenOrientation="landscape"
+                android:icon="@drawable/live_icon"
+		android:launchMode="singleTask"
+                android:clearTaskOnLaunch="true"
+                android:windowSoftInputMode="stateAlwaysHidden|adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>
+

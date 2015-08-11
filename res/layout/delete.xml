@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/delete_bg"
+    android:gravity="center" >
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/delete" />
+
+    <View
+        android:layout_width="20dp"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/delete_text"
+        style="@style/text_style"
+        android:text="@string/delete" />
+
+</LinearLayout>
