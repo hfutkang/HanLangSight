@@ -468,6 +468,7 @@ public class CameraLive extends ActivityBase
         // TODO: This should be checked instead directly +1000.
         if (mCaptureTimeLapse) quality += 1000;
         mProfile = CamcorderProfile.get(mCameraId, quality);
+	mProfile.fileFormat = OUTPUT_FORMAT_LIVE;
         getDesiredPreviewSize();
     }
 
@@ -648,8 +649,6 @@ public class CameraLive extends ActivityBase
             mMediaRecorder.setLocation((float) loc.getLatitude(),
 				       (float) loc.getLongitude());
         }
-
-	mMediaRecorder.setCaptureCameraData(1);
 
         // Set output file.
         // Try Uri in the intent first. If it doesn't exist, use our own
@@ -957,7 +956,6 @@ public class CameraLive extends ActivityBase
         if (mMediaRecorderRecording) {
             boolean shouldAddToMediaStoreNow = false;
 
-	    mMediaRecorder.setCaptureCameraData(0);
             try {
                 if (effectsActive()) {
                     // This is asynchronous, so we can't add to media store now because thumbnail
