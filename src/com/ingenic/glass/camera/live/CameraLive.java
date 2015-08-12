@@ -78,6 +78,7 @@ public class CameraLive extends ActivityBase
     private static final int SCREEN_DELAY = 2 * 60 * 1000;
 
     private static final String LIVE_QUIT = "com.ingenic.glass.camera.live.LIVE_QUIT";
+    private int OUTPUT_FORMAT_LIVE = 9; // see media/mediarecorder.h
 
     // Sort
     private static final String EFFECT_BG_FROM_GALLERY = "gallery";
