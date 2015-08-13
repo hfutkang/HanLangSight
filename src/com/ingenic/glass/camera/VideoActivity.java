@@ -1099,20 +1099,21 @@ public class VideoActivity extends ActivityBase
 //            return;
 //        }
 
-	if (mIsCRUISEBoard) {
-	    synchronized (mLock) {
-		if (mNeedWaitInCallConnected || mTTS != null) {
-		    if (mNeedWaitInCallConnected)
-			Log.w(TAG, "Need to wait BluetoothHfDevice connected.");
-		    else
-			Log.w(TAG, "Need to wait tts play end.");
-		    mNeedStartPreview = true;
-		    return;
-		}
-		mNeedStartPreview = false;
-	    }
-	}
+	// if (mIsCRUISEBoard) {
+	//     synchronized (mLock) {
+	// 	if (mNeedWaitInCallConnected || mTTS != null) {
+	// 	    if (mNeedWaitInCallConnected)
+	// 		Log.w(TAG, "Need to wait BluetoothHfDevice connected.");
+	// 	    else
+	// 		Log.w(TAG, "Need to wait tts play end.");
+	// 	    mNeedStartPreview = true;
+	// 	    return;
+	// 	}
+	// 	mNeedStartPreview = false;
+	//     }
+	// }
 
+	Log.e(TAG, "initializeRecorder ...");
         if (effectsActive()) {
             initializeEffectsRecording();
             if (mEffectsRecorder == null) {
@@ -1131,6 +1132,7 @@ public class VideoActivity extends ActivityBase
 
         pauseAudioPlayback();
 
+	Log.e(TAG, "startRecording ...");
         if (effectsActive()) {
             try {
                 mEffectsRecorder.startRecording();
@@ -1700,12 +1702,18 @@ public class VideoActivity extends ActivityBase
 				return;
 			
 			String savePath = videoPath.replace("vedios", ".videothumbnails");
-			
+
 			File thumbfile = new File(savePath);
-			if(!thumbfile.exists()) {
-				thumbfile.createNewFile();
-				Runtime.getRuntime().exec("chmod 777 " + thumbfile.getAbsolutePath());
+			File videothumbnails = new File(thumbfile.getParent());
+			if (!videothumbnails.exists()) {
+				videothumbnails.mkdirs();
 			}
+
+			thumbfile.delete();
+			thumbfile.createNewFile();
+			thumbfile.setReadable(true, false);
+			thumbfile.setWritable(true, false);
+			thumbfile.setExecutable(true, false);
 			
 			FileOutputStream fos = new FileOutputStream(savePath);
 			bitmap.compress(CompressFormat.JPEG, 100, fos);
