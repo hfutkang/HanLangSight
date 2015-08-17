@@ -1157,6 +1157,10 @@ public class VideoActivity extends ActivityBase
 //        showRecordingUI(true);
 //	updateRecordingTime();
         sendCheckAvailableStrorageMsg();
+
+	Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_START");
+	in.setPackage("com.smartglass.device");
+	sendBroadcast(in);
     }
 
     private void sendCheckAvailableStrorageMsg() {
@@ -1235,6 +1239,10 @@ public class VideoActivity extends ActivityBase
         if (!effectsActive()) {
             releaseMediaRecorder();
         }
+
+	Intent i = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
+	i.setPackage("com.smartglass.device");
+	sendBroadcast(i);
     }
     private static String millisecondToTimeString(long milliSeconds, boolean displayCentiSeconds) {
         long seconds = milliSeconds / 1000; // round down to compute seconds

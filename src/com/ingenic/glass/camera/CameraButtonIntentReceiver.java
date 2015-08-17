@@ -35,18 +35,11 @@ public class CameraButtonIntentReceiver extends BroadcastReceiver{
 			if (DEBUG) Log.d(TAG, "--stop video");
 	    		VideoActivity.getMInstance().finish();
 			
-			Intent i = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
-			i.setPackage("com.smartglass.device");
-			context.sendBroadcast(i);
 	    	} else {
 	    		Intent intentVideo = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 	    		intentVideo.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (DEBUG) Log.d(TAG, "--start video");
 	    		context.startActivity(intentVideo);
-
-			Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_START");
-			in.setPackage("com.smartglass.device");
-			context.sendBroadcast(in);
 	    	}
 	    }
 	}
