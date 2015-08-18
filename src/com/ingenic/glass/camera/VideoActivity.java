@@ -223,7 +223,7 @@ public class VideoActivity extends ActivityBase
 				return;
 		}
 		readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
-		setCameraIPUDirect("record");
+		setCameraIPUDirect("record_no_preview");
 		requestStopRecognizeImmediate();
 		try {
 			startVideoRecording(false);
