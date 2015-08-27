@@ -1099,19 +1099,19 @@ public class VideoActivity extends ActivityBase
 //            return;
 //        }
 
-	// if (mIsCRUISEBoard) {
-	//     synchronized (mLock) {
-	// 	if (mNeedWaitInCallConnected || mTTS != null) {
-	// 	    if (mNeedWaitInCallConnected)
-	// 		Log.w(TAG, "Need to wait BluetoothHfDevice connected.");
-	// 	    else
-	// 		Log.w(TAG, "Need to wait tts play end.");
-	// 	    mNeedStartPreview = true;
-	// 	    return;
-	// 	}
-	// 	mNeedStartPreview = false;
-	//     }
-	// }
+	if (mIsCRUISEBoard) {
+	    synchronized (mLock) {
+		if (mNeedWaitInCallConnected || mTTS != null) {
+		    if (mNeedWaitInCallConnected)
+			Log.w(TAG, "Need to wait BluetoothHfDevice connected.");
+		    else
+			Log.w(TAG, "Need to wait tts play end.");
+		    mNeedStartPreview = true;
+		    return;
+		}
+		mNeedStartPreview = false;
+	    }
+	}
 
 	Log.e(TAG, "initializeRecorder ...");
         if (effectsActive()) {
