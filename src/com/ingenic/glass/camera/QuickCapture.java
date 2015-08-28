@@ -100,12 +100,6 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	mVoiceRecognizer.setAppName("QuickCapture");
     }
 
-    // Snapshots can only be taken after this is called.
-    private boolean initialize() {
-        mContentResolver = mContext.getContentResolver();
-        return checkStorage();
-    }
-
     private final class JpegPictureCallback implements PictureCallback {
         Location mLocation;
 
@@ -201,7 +195,8 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	    return;
 	}
 
-	if (!initialize()) {
+        mContentResolver = mContext.getContentResolver();
+	if(checkStorage() == false){
 	    finish();
 	    return;
 	}
