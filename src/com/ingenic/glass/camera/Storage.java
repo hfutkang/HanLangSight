@@ -117,7 +117,9 @@ public class Storage {
         }
 
         File dir = new File(DIRECTORY);
-        dir.mkdirs();
+	if(!dir.exists())
+	    dir.mkdirs();
+
         if (!dir.isDirectory() || !dir.canWrite()) {
             return UNAVAILABLE;
         }

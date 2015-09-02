@@ -196,7 +196,6 @@ public class VideoActivity extends ActivityBase
     private Object mLock = new Object();
     private boolean mNeedWaitInCallConnected = true;
     private boolean mNeedStartPreview = false;
-    private boolean mIsCRUISEBoard = false;
     private String mTTS = null;
     private boolean mFinished = false;
     private boolean mHasError = false;
@@ -280,15 +279,14 @@ public class VideoActivity extends ActivityBase
         String strFormat = null;
 
         // Modifyed by dybai_bj 20150703 Add subsection recode configure And Driving recorder mode.
-        if (mIsCRUISEBoard) {
-	    if (CAR_MODE_Y == this.mCarMode) {
-		if (mCaptureTimeLapse)
-		    strFormat = getString(R.string.car_video_no_sound_file_name_format);
-		else
-		    strFormat = getString(R.string.car_video_file_name_format);
-	    } else if (mCaptureTimeLapse)
-		strFormat = getString(R.string.video_no_sound_file_name_format);
-        } 
+	if (CAR_MODE_Y == this.mCarMode) {
+	    if (mCaptureTimeLapse)
+		strFormat = getString(R.string.car_video_no_sound_file_name_format);
+	    else
+		strFormat = getString(R.string.car_video_file_name_format);
+	} else if (mCaptureTimeLapse)
+	    strFormat = getString(R.string.video_no_sound_file_name_format);
+
 	if (strFormat == null) {
         	strFormat = getString(R.string.video_file_name_format);
         }
@@ -303,7 +301,7 @@ public class VideoActivity extends ActivityBase
         super.onCreate(icicle);
 	if(DEBUG) Log.d(TAG,"onCreate in");
 	VideoActivity.mInstance = this;
-	mIsCRUISEBoard = "cruise".equalsIgnoreCase(Build.BOARD);
+
 	requestWindowFeature(Window.FEATURE_PROGRESS);
 	mWindowsWidth = getWindowManager().getDefaultDisplay().getWidth();  
 	mWindowsHeight = getWindowManager().getDefaultDisplay().getHeight();
@@ -330,31 +328,37 @@ public class VideoActivity extends ActivityBase
 	mGestureDetector = new GestureDetector(this, new MySimpleGestureDetectorListener());
 	root.setOnTouchListener(this);
 
+	mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+	long storageSpace = StorageSpaceUtil.getAvailableSpace();
+	if(storageSpace <= StorageSpaceUtil.LOW_STORAGE_THRESHOLD){
+	    mNoEnoughStorage = true;
+	    finish();
+	    return;
+	}
+	
 	init();
 
         this.sortCarVideoFileList();
 	
 	setAppName(getString(R.string.video_recorder_label));
-	if (mIsCRUISEBoard) {
-	    mAutoRecognize = false;
-	    mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-	    if (mOpenCameraFail || mCameraDisabled) {
-		mHasError = true;
-		finish();
-		return;
+
+	mAutoRecognize = false;
+	if (mOpenCameraFail || mCameraDisabled) {
+	    mHasError = true;
+	    finish();
+	    return;
+	}
+	if (!bindService(new Intent("com.ingenic.glass.incall.InCallService"), 
+			 mServiceConnection, Context.BIND_AUTO_CREATE)) {
+	    synchronized (mLock) {
+		mNeedWaitInCallConnected = false;
 	    }
-	    if (!bindService(new Intent("com.ingenic.glass.incall.InCallService"), 
-			     mServiceConnection, Context.BIND_AUTO_CREATE)) {
-		    synchronized (mLock) {
-			    mNeedWaitInCallConnected = false;
-		    }
-	    }
-	    if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
-		    synchronized (mLock) {						
-			    mTTS = getString(R.string.tts_video_record_start);
-			    requestRegister();
-			    requestPlayTTS(mTTS);
-		    }
+	}
+	if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
+	    synchronized (mLock) {						
+		mTTS = getString(R.string.tts_video_record_start);
+		requestRegister();
+		requestPlayTTS(mTTS);
 	    }
 	}
     }
@@ -364,7 +368,6 @@ public class VideoActivity extends ActivityBase
      * @author Added by dybai_bj 20150703
      */
 	private void readSubsectionConfig() {
-		if (mIsCRUISEBoard) {
 			SharedPreferences sharedPreferences = this.getSharedPreferences(
 					"com.ingenic.glass.video_record_preferences", Activity.MODE_PRIVATE);
 			this.mCarMode = sharedPreferences.getInt("CarMode", CAR_MODE_N);
@@ -382,7 +385,6 @@ public class VideoActivity extends ActivityBase
 //						, this.mSubsectionTimed*60*1000
 //						, this.mSubsectionTimed*60*1000);
 //			}
-        }
 	}
 
     /**
@@ -390,44 +392,42 @@ public class VideoActivity extends ActivityBase
      * @author Added by dybai_bj 20150703
      */
 	private void sortCarVideoFileList() {
-		if (mIsCRUISEBoard) {
-			File carVideoDirectory = new File(Storage.DIRECTORY_VIDEO);
-			if (!carVideoDirectory.exists()) {
-				carVideoDirectory.mkdirs();
-			} else if (!carVideoDirectory.isDirectory()) {
-				carVideoDirectory.delete();
-				carVideoDirectory.mkdirs();
-			}
+	    File carVideoDirectory = new File(Storage.DIRECTORY_VIDEO);
+	    if (!carVideoDirectory.exists()) {
+		carVideoDirectory.mkdirs();
+	    } else if (!carVideoDirectory.isDirectory()) {
+		carVideoDirectory.delete();
+		carVideoDirectory.mkdirs();
+	    }
 
-			// Filter the car video files.
-			File [] files = carVideoDirectory.listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					if (name.startsWith("CarVideo_")) {
-						return true;
-					}
-					return false;
-				}
-			});
-
-			// Sort the car video file list, according to the ascending order.
-			Arrays.sort(files, new Comparator<File>() {
-				@Override
-				public int compare(File f1, File f2) {
-					long result = f1.lastModified() - f2.lastModified();
-					if (result < 0) {
-						return -1;
-					} else if (result > 0) {
-						return 1;
-					}
-					return 0;
-				}
-			});
-			this.mCarVideoFileQueue = new LinkedList<File>();
-			for (int i = 0; i < files.length; i++) {
-				this.mCarVideoFileQueue.add(files[i]);
+	      // Filter the car video files.
+	    File [] files = carVideoDirectory.listFiles(new FilenameFilter() {
+		    @Override
+			public boolean accept(File dir, String name) {
+			if (name.startsWith("CarVideo_")) {
+			    return true;
 			}
-        }
+			return false;
+		    }
+		});
+
+	      // Sort the car video file list, according to the ascending order.
+	    Arrays.sort(files, new Comparator<File>() {
+		    @Override
+			public int compare(File f1, File f2) {
+			long result = f1.lastModified() - f2.lastModified();
+			if (result < 0) {
+			    return -1;
+			} else if (result > 0) {
+			    return 1;
+			}
+			return 0;
+		    }
+		});
+	    this.mCarVideoFileQueue = new LinkedList<File>();
+	    for (int i = 0; i < files.length; i++) {
+		this.mCarVideoFileQueue.add(files[i]);
+	    }
 	}
 
     @Override
@@ -488,7 +488,7 @@ public class VideoActivity extends ActivityBase
         // Make sure preview is started.
         try {
             mStartPreviewThread.join();
-	    if (mIsCRUISEBoard && (mOpenCameraFail || mCameraDisabled)) {
+	    if ((mOpenCameraFail || mCameraDisabled)) {
 		return;
 	    }
             if (mOpenCameraFail) {
@@ -513,12 +513,6 @@ public class VideoActivity extends ActivityBase
         intentFilter.addDataScheme("file");
         mReceiver = new MyBroadcastReceiver();
         registerReceiver(mReceiver, intentFilter);
-        mStorageSpace = Storage.getAvailableSpace();
-        mHandler.postDelayed(new Runnable() {
-		public void run() {
-		    showStorageHint();
-		}
-	    }, 200);
     }
 
     private OnScreenHint mStorageHint;
@@ -554,44 +548,15 @@ public class VideoActivity extends ActivityBase
     }
 
     private void readVideoPreferences(boolean hasAudio) {
-        // The preference stores values from ListPreference and is thus string type for all values.
-        // We need to convert it to int manually.
-        // String defaultQuality = CameraSettings.getDefaultVideoQuality(mCameraId,
-	// 							      getResources().getString(R.string.pref_video_quality_default));
-        // String videoQuality =
-	//     mPreferences.getString(CameraSettings.KEY_VIDEO_QUALITY,
-	// 			   defaultQuality);
-        // int quality = Integer.valueOf(videoQuality);
-
         // Set video quality.
-	    int quality = CamcorderProfile.QUALITY_HIGH;
+	int quality = CamcorderProfile.QUALITY_HIGH;
         Intent intent = getIntent();
-        // if (intent.hasExtra(MediaStore.EXTRA_VIDEO_QUALITY)) {
-        //     int extraVideoQuality =
-	// 	intent.getIntExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
-        //     if (extraVideoQuality > 0) {
-        //         quality = CamcorderProfile.QUALITY_HIGH;
-        //     } else {  // 0 is mms.
-        //         quality = CamcorderProfile.QUALITY_LOW;
-        //     }
-        // }
 
         // Set video duration limit. The limit is read from the preference,
         // unless it is specified in the intent.
         //if is cruise board set it to mSubsecttionTimed,add by hky@sctek.cn 20150721
-        if(mIsCRUISEBoard) {
-        	readSubsectionConfig();
-        	mMaxVideoDurationInMs = (int)mSubsectionTimed*60*1000;
-        }
-        else {
-			if (intent.hasExtra(MediaStore.EXTRA_DURATION_LIMIT)) {
-				int seconds =
-				intent.getIntExtra(MediaStore.EXTRA_DURATION_LIMIT, 0);
-				mMaxVideoDurationInMs = 1000 * seconds;
-			} else {
-			    mMaxVideoDurationInMs = CameraSettings.DEFAULT_VIDEO_DURATION;
-			}
-        }
+	readSubsectionConfig();
+	mMaxVideoDurationInMs = (int)mSubsectionTimed*60*1000;
 
         // Set effect
         mEffectType = CameraSettings.readEffectType(mPreferences);
@@ -693,16 +658,13 @@ public class VideoActivity extends ActivityBase
             mStorageHint.cancel();
             mStorageHint = null;
         }
+	if(mLocationManager != null)
+	    mLocationManager.recordLocation(false);
 
-        mLocationManager.recordLocation(false);
-
-        // Added by dybai_bj 20150703 Add subsection recode configure And Driving recorder mode.
-        if (mIsCRUISEBoard) {
-	        // Stop the subsection video recode task.
-	        if (this.mSubsectionTimed > 0) {
-	        	this.mSubsectionTimer.cancel();
-	        }
-        }
+	  // Stop the subsection video recode task.
+	if (this.mSubsectionTimed > 0) {
+	    this.mSubsectionTimer.cancel();
+	}
 
 	try {
 		if (mService != null) {
@@ -843,14 +805,11 @@ public class VideoActivity extends ActivityBase
 //        } catch (RuntimeException exception) {
 //        }
 
-        // Added by dybai_bj 20150703 Add subsection recode configure And Driving recorder mode.
-        if (mIsCRUISEBoard) {
-        	this.mIsStorageSpaceLess = true;
-        	this.checkVideoFileSize();
-        	//added by hky@sctek.cn 20150722 return when no enough space.
-        	if(mMediaRecorder == null)
-        		return;
-        }
+	this.mIsStorageSpaceLess = true;
+	this.checkVideoFileSize();
+	  //added by hky@sctek.cn 20150722 return when no enough space.
+	if(mMediaRecorder == null)
+	    return;
 
         int rotation = 0;
         if (mOrientation != OrientationEventListener.ORIENTATION_UNKNOWN) {
@@ -1024,16 +983,9 @@ public class VideoActivity extends ActivityBase
     // from MediaRecorder.OnErrorListener
     public void onError(MediaRecorder mr, int what, int extra) {
         if(DEBUG) Log.e(TAG, "MediaRecorder error. what=" + what + ". extra=" + extra);
-	if (mIsCRUISEBoard) {
-	    mHasError = true;
-	    finish();
-	    return;
-	}
-        if (what == MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN) {
-            // We may have run out of space on the sdcard.
-            stopVideoRecording();
-            updateAndShowStorageHint();
-        }
+	mHasError = true;
+	finish();
+	return;
     }
 
     // from MediaRecorder.OnInfoListener
@@ -1088,7 +1040,7 @@ public class VideoActivity extends ActivityBase
 	    return;
 	requestStopRecognizeImmediate();
 
-	if (readPref && mIsCRUISEBoard)
+	if (readPref)
 	    readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
 
         if(DEBUG) Log.d(TAG, "startVideoRecording mCaptureTimeLapse:"+mCaptureTimeLapse);
@@ -1099,18 +1051,16 @@ public class VideoActivity extends ActivityBase
 //            return;
 //        }
 
-	if (mIsCRUISEBoard) {
-	    synchronized (mLock) {
-		if (mNeedWaitInCallConnected || mTTS != null) {
-		    if (mNeedWaitInCallConnected)
-			Log.w(TAG, "Need to wait BluetoothHfDevice connected.");
-		    else
-			Log.w(TAG, "Need to wait tts play end.");
-		    mNeedStartPreview = true;
-		    return;
-		}
-		mNeedStartPreview = false;
+	synchronized (mLock) {
+	    if (mNeedWaitInCallConnected || mTTS != null) {
+		if (mNeedWaitInCallConnected)
+		    Log.w(TAG, "Need to wait BluetoothHfDevice connected.");
+		else
+		    Log.w(TAG, "Need to wait tts play end.");
+		mNeedStartPreview = true;
+		return;
 	    }
+	    mNeedStartPreview = false;
 	}
 
 	Log.e(TAG, "initializeRecorder ...");
@@ -1212,12 +1162,9 @@ public class VideoActivity extends ActivityBase
                 mCurrentVideoFilename = mVideoFilename;
                 if(DEBUG)Log.d(TAG, "Setting current video filename: "
 			       + mCurrentVideoFilename);
-                // Added by dybai_bj 20150703 Add subsection recode configure And Driving recorder mode.
-                if (mIsCRUISEBoard) {
-	                if (!this.mCarVideoFileQueue.offer(new File(mCurrentVideoFilename))) {
-	                	if (DEBUG) Log.d(TAG, "WARNING: Car video file added to queue failure!");
-	                }
-                }
+		if (!this.mCarVideoFileQueue.offer(new File(mCurrentVideoFilename))) {
+		    if (DEBUG) Log.d(TAG, "WARNING: Car video file added to queue failure!");
+		}
             } catch (RuntimeException e) {
                 Log.e(TAG, "stop fail",  e);
                 if (mVideoFilename != null) deleteVideoFile(mVideoFilename);
@@ -1230,7 +1177,10 @@ public class VideoActivity extends ActivityBase
 //                		Video.Thumbnails.MINI_KIND, null, true);
             	creatAndSaveVideoThumbnail(mCurrentVideoFilename);
             }
-	 
+
+	    Intent i = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
+	    i.setPackage("com.smartglass.device");
+	    sendBroadcast(i); 
         }
 
 	mNeedStartPreview = false;
@@ -1239,10 +1189,6 @@ public class VideoActivity extends ActivityBase
         if (!effectsActive()) {
             releaseMediaRecorder();
         }
-
-	Intent i = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
-	i.setPackage("com.smartglass.device");
-	sendBroadcast(i);
     }
     private static String millisecondToTimeString(long milliSeconds, boolean displayCentiSeconds) {
         long seconds = milliSeconds / 1000; // round down to compute seconds
@@ -1467,25 +1413,20 @@ public class VideoActivity extends ActivityBase
 	     // ������������������������������������������������closecamera���������finish������
 	     finishRecorderAndCloseCamera();
 	}
-	if (mIsCRUISEBoard) {
-	    if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
-		synchronized (mLock) {	
-			if(mNoEnoughStorage)
-		    	mTTS = getString(R.string.tts_video_record_no_storage);
-			else {
-				if (mHasError)
-				mTTS = getString(R.string.tts_video_record_error);
+	if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
+	    synchronized (mLock) {	
+		if(mNoEnoughStorage)
+		    mTTS = getString(R.string.tts_video_record_no_storage);
+		else {
+		    if (mHasError)
+			mTTS = getString(R.string.tts_video_record_error);
 		    else
-		    	mTTS = getString(R.string.tts_video_record_stop);
-			}
-		    requestPlayTTS(mTTS);
-		    mHasError = false;
-		    mNoEnoughStorage = false;
+			mTTS = getString(R.string.tts_video_record_stop);
 		}
+		requestPlayTTS(mTTS);
+		mHasError = false;
+		mNoEnoughStorage = false;
 	    }
-	} else if (!finished) {
-	    Intent intent=new Intent(VideoActivity.this,GalleryPicker.class);
-	    startActivity(intent);	
 	}
 	
 	mHandler.removeMessages(UPDATE_RECORD_TIME);
@@ -1519,7 +1460,7 @@ public class VideoActivity extends ActivityBase
     } 
 
     private void checkVideoFileSize () {
-	if (mIsCRUISEBoard && this.mIsStorageSpaceLess) {
+	if (this.mIsStorageSpaceLess) {
         	long storageSpace = StorageSpaceUtil.getAvailableSpace();
         	long estimateVideoFileSize =
             		VideoActivity.this.mSurfaceWidth * VideoActivity.this.mSurfaceHeight * 3 / 2 / 10 // A frame size
@@ -1538,45 +1479,43 @@ public class VideoActivity extends ActivityBase
     }
 
     private void recyclingVideoSpace () {
-	if (mIsCRUISEBoard) {
-	    	// In car mode, if there is no enough storage space, then delete the earliest video files.
-	    	if (CAR_MODE_Y == this.mCarMode) {
-	        	File videoFile = null;
-	        	while (null != (videoFile = this.mCarVideoFileQueue.poll())) {
-	        		if (videoFile.exists() && videoFile.delete()) {
-	        			if (DEBUG) Log.d(TAG, "WARNING: Car Mode, No enough storage space! "
-	        					+ "Delete file: " + videoFile.getAbsolutePath() + " success!");
-	        			break;
-	        		}
-	        		if (DEBUG) Log.d(TAG, "WARNING: Car Mode, No enough storage space! "
-	        				+ "Delete file: " + videoFile.getAbsolutePath() + " failure!");
-	        	}
+	  // In car mode, if there is no enough storage space, then delete the earliest video files.
+	if (CAR_MODE_Y == this.mCarMode) {
+	    File videoFile = null;
+	    while (null != (videoFile = this.mCarVideoFileQueue.poll())) {
+		if (videoFile.exists() && videoFile.delete()) {
+		    if (DEBUG) Log.d(TAG, "WARNING: Car Mode, No enough storage space! "
+				     + "Delete file: " + videoFile.getAbsolutePath() + " success!");
+		    break;
+		}
+		if (DEBUG) Log.d(TAG, "WARNING: Car Mode, No enough storage space! "
+				 + "Delete file: " + videoFile.getAbsolutePath() + " failure!");
+	    }
 	        	
-	        	if(videoFile == null) {
-	        		mNoEnoughStorage = true;
-	        		if(mMediaRecorderRecording) {
-	        			this.finish();
-	        		}
-	        		else {
-		        		mCameraDevice.lock();
-			        	releaseMediaRecorder();
-			        	return;
-	        		}
-	        	}
-	        } else {
-				//set mNoEnoughStorage to true when there is no enough storage add by hky@sctek.cn 20150720
-	        	mNoEnoughStorage = true;
-	        	if(mMediaRecorderRecording) {
-	        		this.finish();
-	        	}
-	        	else {
-	        		mCameraDevice.lock();
-	        		releaseMediaRecorder();
-		        	return;
-	        	}
+	    if(videoFile == null) {
+		mNoEnoughStorage = true;
+		if(mMediaRecorderRecording) {
+		    this.finish();
+		}
+		else {
+		    mCameraDevice.lock();
+		    releaseMediaRecorder();
+		    return;
+		}
+	    }
+	} else {
+	      //set mNoEnoughStorage to true when there is no enough storage add by hky@sctek.cn 20150720
+	    mNoEnoughStorage = true;
+	    if(mMediaRecorderRecording) {
+		this.finish();
+	    }
+	    else {
+		mCameraDevice.lock();
+		releaseMediaRecorder();
+		return;
+	    }
 //	        	throw new RuntimeException(getResources().getString(R.string.not_enough_space));
-	        }
-    	}
+	}
     }
 
     @Override
