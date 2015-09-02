@@ -177,6 +177,12 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     public void start() {
 	if(DEBUG) Log.d(TAG,"start in");
 
+        mContentResolver = mContext.getContentResolver();
+	if(checkStorage() == false){
+	    finish();
+	    return;
+	}
+
 	startAudio(R.raw.empty);
 
        getPreferredCameraId();
@@ -191,12 +197,6 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	} else if (mCameraDisabled) {
 	    // Toast.makeText(mContext, R.string.camera_disabled, Toast.LENGTH_LONG).show();
 	    startAudio(R.raw.camera_error);
-	    finish();
-	    return;
-	}
-
-        mContentResolver = mContext.getContentResolver();
-	if(checkStorage() == false){
 	    finish();
 	    return;
 	}
