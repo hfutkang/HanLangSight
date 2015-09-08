@@ -351,7 +351,7 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     private void setCameraParameters() {
         mParameters = mCameraDevice.getParameters();
 	// mParameters.set("glass_snapshot", 1);//snapshot
-	mParameters.set("camera_ipu_direct", "capture");//ipu_direct
+	mParameters.set("preview_mode", 0x00);//ipu_direct
 
 		// Added by bdy 20150625 Config photo resolution
 		SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
