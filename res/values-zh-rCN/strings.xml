@@ -30,7 +30,7 @@
     <string name="no_storage" product="nosdcard" msgid="5876548364041592119">"请先装载 USB 存储设备，再使用相机。"</string>
     <string name="no_storage" product="default" msgid="820691042667338625">"使用相机前请先插入 SD 卡。"</string>
     <string name="not_enough_space" product="nosdcard" msgid="6452370395538050134">"您的 USB 存储设备空间已满。"</string>
-    <string name="not_enough_space" product="default" msgid="6655334407957844653">"磁盘已满"</string>
+    <string name="not_enough_space" product="default" msgid="6655334407957844653">"空间不足，拍照失败"</string>
     <string name="preparing_sd" product="nosdcard" msgid="6104019983528341353">"正在准备 USB 存储设备..."</string>
     <string name="preparing_sd" product="default" msgid="2914969119574812666">"正在准备 SD 卡..."</string>
     <string name="access_sd_fail" product="nosdcard" msgid="8147993984037859354">"无法访问 USB 存储设备。"</string>
