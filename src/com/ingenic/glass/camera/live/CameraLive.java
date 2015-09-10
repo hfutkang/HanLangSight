@@ -187,7 +187,7 @@ public class CameraLive extends ActivityBase
 		    if (mFinished)
 			return;
 		}
-		setCameraIPUDirect("record");
+		setCameraIPUDirect(0x07);
 		requestStopRecognizeImmediate();
 		startVideoRecording();
 		break;
@@ -1226,14 +1226,13 @@ public class CameraLive extends ActivityBase
 	    super.finish();
     }
 
-    private void setCameraIPUDirect(String mode){
-	if(DEBUG)Log.d(TAG, "set camera_ipu_direct record and restart preview.");
+    private void setCameraIPUDirect(int mode){
+	Log.d(TAG, "set camera_ipu_direct record and restart preview.");
 	if (mCameraDevice == null)
-	    return;
-
+		return;
 	Parameters p = mCameraDevice.getParameters();
-	p.set("camera_ipu_direct", mode);
-	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);	
+	p.set("preview_mode", mode);
+	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);
 	mCameraDevice.setParameters(p);
 	addWakeLock();	
     }
