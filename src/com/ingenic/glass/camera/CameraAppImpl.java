@@ -23,13 +23,17 @@ import android.app.Application;
 public class CameraAppImpl extends Application {
 
 	public static final int DCIM=0;
-    public static final int OTHER=1;
+	public static final int OTHER=1;
+	public static final int NO_DIAPLAY = 0x00;
+	public static final int NORMAL_DIAPLAY = 0x04;
+	public static final int LOW_POWER_DIAPLAY_CAPTURE = 0x06;
+	public static final int LOW_POWER_DIAPLAY_VIDEO = 0x07;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Util.initialize(this);
-    }
+	@Override
+		public void onCreate() {
+		super.onCreate();
+		Util.initialize(this);
+	}
 }
 
 

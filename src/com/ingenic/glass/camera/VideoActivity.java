@@ -222,7 +222,7 @@ public class VideoActivity extends ActivityBase
 				return;
 		}
 		readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
-		setCameraIPUDirect(0x01);
+		setCameraPreviewMode(CameraAppImpl.NO_DIAPLAY);
 		requestStopRecognizeImmediate();
 		try {
 			startVideoRecording(false);
@@ -1435,8 +1435,7 @@ public class VideoActivity extends ActivityBase
 	    super.finish();
     }
 
-    private void setCameraIPUDirect(int mode){
-	if(DEBUG)Log.d(TAG, "set camera_ipu_direct record and restart preview.");
+    private void setCameraPreviewMode(int mode){
 	if (mCameraDevice == null)
 		return;
 	Parameters p = mCameraDevice.getParameters();

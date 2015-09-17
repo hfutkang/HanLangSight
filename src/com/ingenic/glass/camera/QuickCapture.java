@@ -5,9 +5,6 @@ package com.ingenic.glass.camera;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.ContentResolver;
@@ -351,23 +348,9 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     private void setCameraParameters() {
         mParameters = mCameraDevice.getParameters();
 	// mParameters.set("glass_snapshot", 1);//snapshot
-	mParameters.set("preview_mode", 0x00);//ipu_direct
-
-		// Added by bdy 20150625 Config photo resolution
-		SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-		SAXParser saxParser = null;
-		TakePictureSAX takePictureSAX = new TakePictureSAX();
-		try {
-			saxParser = saxParserFactory.newSAXParser();
-			saxParser.parse(new File("/system/etc/takepicture_profiles.xml"), takePictureSAX);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		TakePictureProfile takePictureProfile = takePictureSAX.getTakePicturePorfileList().get(0);
-		mParameters.setPictureSize(Integer.parseInt(takePictureProfile.getWidth())
-				, Integer.parseInt(takePictureProfile.getHeight()));
-
-        mCameraDevice.setParameters(mParameters);
+	mParameters.set("preview_mode", CameraAppImpl.NO_DIAPLAY);//ipu_direct
+	mParameters.setPictureSize(3264, 2448);
+	mCameraDevice.setParameters(mParameters);
     }
 
     public void initView() {
