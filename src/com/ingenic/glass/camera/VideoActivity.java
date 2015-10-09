@@ -225,7 +225,10 @@ public class VideoActivity extends ActivityBase
 		setCameraPreviewMode(CameraAppImpl.NO_DIAPLAY);
 		requestStopRecognizeImmediate();
 		try {
-			startVideoRecording(false);
+				Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_START");
+				in.setPackage("com.smartglass.device");
+				sendBroadcast(in);
+				startVideoRecording(false);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Toast.makeText(VideoActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -348,7 +351,7 @@ public class VideoActivity extends ActivityBase
 	    finish();
 	    return;
 	}
-	if (!bindService(new Intent("com.ingenic.glass.incall.InCallService"), 
+	if (!bindService(new Intent("com.ingenic.glass.incall.AudioModeService"), 
 			 mServiceConnection, Context.BIND_AUTO_CREATE)) {
 	    synchronized (mLock) {
 		mNeedWaitInCallConnected = false;
@@ -1107,10 +1110,6 @@ public class VideoActivity extends ActivityBase
 //        showRecordingUI(true);
 //	updateRecordingTime();
         sendCheckAvailableStrorageMsg();
-
-	Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_START");
-	in.setPackage("com.smartglass.device");
-	sendBroadcast(in);
     }
 
     private void sendCheckAvailableStrorageMsg() {
@@ -1177,10 +1176,7 @@ public class VideoActivity extends ActivityBase
 //                		Video.Thumbnails.MINI_KIND, null, true);
             	creatAndSaveVideoThumbnail(mCurrentVideoFilename);
             }
-
-	    Intent i = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
-	    i.setPackage("com.smartglass.device");
-	    sendBroadcast(i); 
+	 
         }
 
 	mNeedStartPreview = false;

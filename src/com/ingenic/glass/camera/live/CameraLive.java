@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.SharedPreferences;
+import android.content.ServiceConnection;
+import android.content.ComponentName;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
@@ -28,6 +30,8 @@ import android.os.Process;
 import android.os.Build;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.RemoteException;
+import android.os.IBinder;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.util.Log;
@@ -60,6 +64,8 @@ import com.ingenic.glass.camera.*;
 import com.ingenic.glass.camera.util.Util;
 import com.ingenic.glass.camera.ui.RotateLayout;
 import com.ingenic.glass.camera.gallery.GalleryPicker;
+import com.ingenic.glass.incall.aidl.IInCallService;
+import com.ingenic.glass.incall.aidl.IInCallListener;
 
 /**
  * The Camcorder activity.
@@ -168,6 +174,10 @@ public class CameraLive extends ActivityBase
     private boolean mIsCRUISEBoard = false;
     private boolean mFinished = false;
     private boolean mHasError = false;
+    private IInCallService mService = null;
+    private boolean mNeedWaitInCallConnected = true;
+    private boolean mNeedStartPreview = false;
+    private long mListenerId = -1;
 
     // This Handler is used to post message back onto the main thread of the
     // application
@@ -187,9 +197,10 @@ public class CameraLive extends ActivityBase
 		    if (mFinished)
 			return;
 		}
+		readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
 		setCameraIPUDirect(0x07);
 		requestStopRecognizeImmediate();
-		startVideoRecording();
+		startVideoRecording(false);
 		break;
 	    }
 	    default:
@@ -223,6 +234,44 @@ public class CameraLive extends ActivityBase
 
         }
     }
+
+
+    
+    // We should do no-audio recording before audio mode being set to MODE_IN_CALL,
+    // and do with-audio recording after audio mode being set to other mode.
+    private IInCallListener.Stub mBinderListener = new IInCallListener.Stub(){
+	    @Override
+	    public void onPreModeStateChanged(int mode){
+		Log.d(TAG,"before set mode to " + mode + " isRecording:"+isRecording());
+		if (!isRecording())
+		    return;
+		if (mode == AudioManager.MODE_IN_CALL) {
+		    stopVideoRecording();
+		}
+	    }
+
+	    @Override
+	    public void onPostModeStateChanged(int mode){
+		Log.d(TAG,"onPostModeStateChanged :: set mode to " + mode + " isRecording:"+isRecording());
+	    }
+	};
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+	    public void onServiceConnected(ComponentName classname, IBinder obj) {
+		if(DEBUG) Log.d(TAG, "onServiceConnected to InCallService");
+		mService = IInCallService.Stub.asInterface(obj);
+		try {
+		    mListenerId = mService.registerInCallListener(IInCallListener.Stub
+								  .asInterface(mBinderListener));
+		} catch (RemoteException ex) {
+		}
+	    }
+	    public void onServiceDisconnected(ComponentName classname) {
+		if (DEBUG) Log.d(TAG, "onServiceDisconnected from InCallService");
+		mService = null;
+	    }
+	};
+	
 
     private String createName(long dateTaken) {
         Date date = new Date(dateTaken);
@@ -288,6 +337,10 @@ public class CameraLive extends ActivityBase
 		finish();
 		return;
 	    }
+
+	   bindService(new Intent("com.ingenic.glass.incall.AudioModeService"), 
+			     mServiceConnection, Context.BIND_AUTO_CREATE);
+
 	    if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
 		requestPlayTTS(getString(R.string.tts_live_video_record_start));
 	    }
@@ -337,8 +390,6 @@ public class CameraLive extends ActivityBase
 			mCameraDevice = Util.openCamera(CameraLive.this, mCameraId);
 			if (mCameraDevice == null)
 			    mOpenCameraFail = true;
-			else
-			    readVideoPreferences();
 		    } catch (CameraHardwareException e) {
 			mOpenCameraFail = true;
 		    } catch (CameraDisabledException e) {
@@ -419,7 +470,7 @@ public class CameraLive extends ActivityBase
         }
     }
 
-    private void readVideoPreferences() {
+    private void readVideoPreferences(boolean hasAudio) {
         // The preference stores values from ListPreference and is thus string type for all values.
         // We need to convert it to int manually.
         String defaultQuality = CameraSettings.getDefaultVideoQuality(mCameraId,
@@ -463,9 +514,14 @@ public class CameraLive extends ActivityBase
             mEffectParameter = null;
         }
         // Read time lapse recording interval.
-        String frameIntervalStr = mPreferences.getString(CameraSettings.KEY_VIDEO_TIME_LAPSE_FRAME_INTERVAL,getString(R.string.pref_video_time_lapse_frame_interval_default));
-        mTimeBetweenTimeLapseFrameCaptureMs = Integer.parseInt(frameIntervalStr);
-        mCaptureTimeLapse = (mTimeBetweenTimeLapseFrameCaptureMs != 0);
+	if (!hasAudio) {
+	    String frameIntervalStr = mPreferences.getString(CameraSettings.KEY_VIDEO_TIME_LAPSE_FRAME_INTERVAL,getString(R.string.pref_video_time_lapse_frame_interval_default));
+	    mTimeBetweenTimeLapseFrameCaptureMs = Integer.parseInt(frameIntervalStr);
+	    mCaptureTimeLapse = (mTimeBetweenTimeLapseFrameCaptureMs != 0);
+	} else {
+	    mTimeBetweenTimeLapseFrameCaptureMs = 0;
+	    mCaptureTimeLapse = false;
+	}
         // TODO: This should be checked instead directly +1000.
         if (mCaptureTimeLapse) quality += 1000;
         mProfile = CamcorderProfile.get(mCameraId, quality);
@@ -546,6 +602,15 @@ public class CameraLive extends ActivityBase
             mStorageHint.cancel();
             mStorageHint = null;
         }
+
+	try {
+	    if (mService != null) {
+		mService.unregisterInCallListener(mListenerId);
+		unbindService(mServiceConnection);
+	    }
+	} catch (RemoteException ex) {
+	    ex.printStackTrace();
+	}
 
         mLocationManager.recordLocation(false);
     }
@@ -877,10 +942,12 @@ public class CameraLive extends ActivityBase
         return mMediaRecorderRecording;
     }
 
-    private void startVideoRecording() {
+    private void startVideoRecording(boolean readPref) {
 	if (mMediaRecorderRecording || mFinished) 
 	    return;
 	requestStopRecognizeImmediate();
+	if (readPref)
+	    readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
 
         if(DEBUG) Log.d(TAG, "startVideoRecording");
         updateAndShowStorageHint();
@@ -1141,7 +1208,7 @@ public class CameraLive extends ActivityBase
     }
 
     private void checkQualityAndStartPreview() {
-        readVideoPreferences();
+        readVideoPreferences(true);
         showTimeLapseUI(mCaptureTimeLapse);
         Size size = mParameters.getPreviewSize();
         if (size.width != mDesiredPreviewWidth
@@ -1265,7 +1332,7 @@ public class CameraLive extends ActivityBase
 	    if(mMediaRecorderRecording)
 		finish();
 	    else
-		startVideoRecording();
+		startVideoRecording(true);
 	    return true;
 	}
     }

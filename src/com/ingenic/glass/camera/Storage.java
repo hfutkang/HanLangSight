@@ -42,7 +42,7 @@ public class Storage {
     
     private static final String BASE_DIR = "/data/apache/GlassData";
     public static final String DIRECTORY = BASE_DIR + "/photos";
-    public static final String DIRECTORY_VIDEO = BASE_DIR + "/vedios";
+    public static final String DIRECTORY_VIDEO = BASE_DIR + "/videos";
 
     // Match the code in MediaProvider.computeBucketValues().
     public static final String BUCKET_ID =
