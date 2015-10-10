@@ -92,6 +92,10 @@ public class CameraLive extends ActivityBase
     private final String CAMERA_ACTION_STOP = "com.ingenic.glass.camera.live.STOP";
     private final String CAMERA_ACTION_ERROR = "com.ingenic.glass.camera.live.ERROR";
 
+    // JNI message, consistent with definition in frameworks/av/media/libstagefright/LiveWriter.cpp
+    private final int MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_START = 1900;
+    private final int MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_STOP  = 1901;
+
     // Sort
     private static final String EFFECT_BG_FROM_GALLERY = "gallery";
 
@@ -913,12 +917,12 @@ public class CameraLive extends ActivityBase
             // Show the toast.
             Toast.makeText(this, R.string.video_reach_size_limit,
 			   Toast.LENGTH_LONG).show();
-        } else if (what == MediaRecorder.MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_START) {
+        } else if (what == MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_START) {
 	    // send start message to Glass.LiveModule
 	    Intent intent = new Intent(CAMERA_ACTION_START);
 	    intent.setPackage(PACKAGE_NAME);
 	    sendBroadcast(intent);
-	} else if (what == MediaRecorder.MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_STOP) {
+	} else if (what == MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_STOP) {
 	    Log.d(TAG, "[ onInfo ] Live server stop from network");
 	    finish();
         }
