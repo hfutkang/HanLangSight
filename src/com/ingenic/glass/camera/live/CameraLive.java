@@ -86,6 +86,12 @@ public class CameraLive extends ActivityBase
     private static final String LIVE_QUIT = "com.ingenic.glass.camera.live.LIVE_QUIT";
     private int OUTPUT_FORMAT_LIVE = 9; // see media/mediarecorder.h
 
+    // Send message to GlassSync.LiveModule
+    private final String PACKAGE_NAME = "cn.ingenic.glasssync";
+    private final String CAMERA_ACTION_START = "com.ingenic.glass.camera.live.START";
+    private final String CAMERA_ACTION_STOP = "com.ingenic.glass.camera.live.STOP";
+    private final String CAMERA_ACTION_ERROR = "com.ingenic.glass.camera.live.ERROR";
+
     // Sort
     private static final String EFFECT_BG_FROM_GALLERY = "gallery";
 
@@ -216,19 +222,7 @@ public class CameraLive extends ActivityBase
         @Override
 	    public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-	    Uri uri = intent.getData();
-            if (action.equals(Intent.ACTION_MEDIA_EJECT)) {
-                updateAndShowStorageHint();
-                stopVideoRecording();
-            } else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
-                updateAndShowStorageHint();
-            } else if (action.equals(Intent.ACTION_MEDIA_UNMOUNTED)) {
-                // SD card unavailable
-            } else if (action.equals(Intent.ACTION_MEDIA_SCANNER_FINISHED)
-		       && uri.toString().equals(GalleryPicker.SCAN_EXTERNAL_URI)) {
-                updateAndShowStorageHint();
-            } else if (action.equals(LIVE_QUIT)) {		    
-		Log.d(TAG, "############################### LIVE_QUIT #################################");
+	    if (action.equals(CAMERA_ACTION_STOP)) {		    
 	        finish();
 	    }
 
@@ -329,10 +323,10 @@ public class CameraLive extends ActivityBase
 
 	if (mIsCRUISEBoard) {
 	    if (mOpenCameraFail || mCameraDisabled) {
-		Intent intent = new Intent("com.ingenic.glass.camera.ERROR");
-		intent.setPackage("cn.ingenic.glasssync");
-		intent.putExtra("error", getString(R.string.video_record_error));
-		sendBroadcast(intent);
+		    Intent intent = new Intent(CAMERA_ACTION_ERROR);
+		    intent.setPackage(PACKAGE_NAME);
+		    intent.putExtra("error", getString(R.string.video_record_error));
+		    sendBroadcast(intent);
 		mHasError = true;
 		finish();
 		return;
@@ -423,13 +417,10 @@ public class CameraLive extends ActivityBase
 	}	           
         // install an intent filter to receive SD card related events.
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MEDIA_MOUNTED);
-        intentFilter.addAction(Intent.ACTION_MEDIA_EJECT);
-        intentFilter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
-        intentFilter.addAction(Intent.ACTION_MEDIA_SCANNER_FINISHED);
-        intentFilter.addAction(LIVE_QUIT);
-        intentFilter.addDataScheme("file");
         mReceiver = new MyBroadcastReceiver();
+        intentFilter.addAction(CAMERA_ACTION_STOP);
         registerReceiver(mReceiver, intentFilter);
+
         mStorageSpace = Storage.getAvailableSpace();
         mHandler.postDelayed(new Runnable() {
 		public void run() {
@@ -897,10 +888,10 @@ public class CameraLive extends ActivityBase
     public void onError(MediaRecorder mr, int what, int extra) {
         if(DEBUG) Log.e(TAG, "MediaRecorder error. what=" + what + ". extra=" + extra);
 	if (mIsCRUISEBoard) {
-	    Intent intent = new Intent("com.ingenic.glass.camera.ERROR");
-	    intent.setPackage("cn.ingenic.glasssync");
-	    intent.putExtra("error", getString(R.string.video_record_error));
-	    sendBroadcast(intent);
+		Intent intent = new Intent(CAMERA_ACTION_ERROR);
+		intent.setPackage(PACKAGE_NAME);
+		intent.putExtra("ErrorInfo", getString(R.string.video_record_error));
+		sendBroadcast(intent);
 	    stopVideoRecording();
 	    mHasError = true;
 	    return;
@@ -922,6 +913,14 @@ public class CameraLive extends ActivityBase
             // Show the toast.
             Toast.makeText(this, R.string.video_reach_size_limit,
 			   Toast.LENGTH_LONG).show();
+        } else if (what == MediaRecorder.MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_START) {
+	    // send start message to Glass.LiveModule
+	    Intent intent = new Intent(CAMERA_ACTION_START);
+	    intent.setPackage(PACKAGE_NAME);
+	    sendBroadcast(intent);
+	} else if (what == MediaRecorder.MEDIA_RECORDER_TRACK_INFO_LIVE_SERVER_STOP) {
+	    Log.d(TAG, "[ onInfo ] Live server stop from network");
+	    finish();
         }
     }
 
