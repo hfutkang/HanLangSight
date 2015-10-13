@@ -393,6 +393,8 @@
     <string name="tts_video_record_stop">Recording stop</string>
     <string name="tts_video_record_error">Recording error</string>
     <string name="tts_video_record_no_storage">No enough space</string>
+    <string name="tts_video_record_lowpower">No enough power</string>
+    <string name="tts_take_picture_lowpower">No enough power</string>
     <string name="tts_live_video_record_start">Camera live show start</string>
     <string name="tts_live_video_record_stop">Camera live show stop</string>
     <string name="tts_live_video_record_error">Camera live show error</string>

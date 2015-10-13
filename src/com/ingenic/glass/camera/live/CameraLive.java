@@ -66,7 +66,9 @@ import com.ingenic.glass.camera.ui.RotateLayout;
 import com.ingenic.glass.camera.gallery.GalleryPicker;
 import com.ingenic.glass.incall.aidl.IInCallService;
 import com.ingenic.glass.incall.aidl.IInCallListener;
-
+import android.os.BatteryManager;
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 /**
  * The Camcorder activity.
  */
@@ -233,7 +235,21 @@ public class CameraLive extends ActivityBase
         }
     }
 
-
+    private BroadcastReceiver mBatteryReceiver = null;
+   private class BatteryBroadcastReceiver extends BroadcastReceiver {
+        @Override
+	    public void onReceive(Context context, Intent intent) {
+	    if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)){
+		int currentBatteryVoltage = 
+		    intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE,LOWEST_BATTERY_VOLTAGE);
+		if (currentBatteryVoltage <= LOWEST_BATTERY_VOLTAGE){
+		    Log.e(TAG,"battery is lower :: currentBatteryVoltage= "+currentBatteryVoltage);
+		    mHasError = true;
+		    finish();
+		}
+	    }
+        }
+    }
     
     // We should do no-audio recording before audio mode being set to MODE_IN_CALL,
     // and do with-audio recording after audio mode being set to other mode.
@@ -312,7 +328,19 @@ public class CameraLive extends ActivityBase
         showTimeLapseUI(mCaptureTimeLapse);
 	mGestureDetector = new GestureDetector(this, new MySimpleGestureDetectorListener());
 	root.setOnTouchListener(this);
-
+	try{
+	    int currentBatteryVoltage = Settings.System.getInt(getContentResolver(),
+							       "batteryVoltage");
+	    if(DEBUG) Log.d(TAG,"currentBatteryVoltage = "+currentBatteryVoltage);
+	    if (currentBatteryVoltage <= LOWEST_BATTERY_VOLTAGE){
+		Log.e(TAG,"battery is lower :: currentBatteryVoltage= "+currentBatteryVoltage);
+		mHasError = true;
+		finish();
+		return;
+	    }
+	}catch(SettingNotFoundException  e){
+	    e.printStackTrace();
+	}
 	setAppName(getString(R.string.camera_live_label));
 	if (mIsCRUISEBoard) {
 	    mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -376,7 +404,10 @@ public class CameraLive extends ActivityBase
         // cameras.
         mResetEffect = getIntent().getBooleanExtra(RESET_EFFECT_EXTRA, true);
         resetEffect();
-
+	IntentFilter filter =
+                new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        mBatteryReceiver = new BatteryBroadcastReceiver();
+	registerReceiver(mBatteryReceiver, filter);
         /*
          * To reduce startup time, we start the preview in another thread.
          * We make sure the preview is started at the end of onCreate.
@@ -593,6 +624,12 @@ public class CameraLive extends ActivityBase
             unregisterReceiver(mReceiver);
             mReceiver = null;
         }
+
+	if (mBatteryReceiver != null){
+	    unregisterReceiver(mBatteryReceiver);
+	    mBatteryReceiver = null;
+	}
+
         if (mStorageHint != null) {
             mStorageHint.cancel();
             mStorageHint = null;

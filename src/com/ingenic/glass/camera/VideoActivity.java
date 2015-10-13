@@ -79,7 +79,9 @@ import com.ingenic.glass.camera.gallery.BitmapManager;
 import com.ingenic.glass.incall.aidl.IInCallService;
 import com.ingenic.glass.incall.aidl.IInCallListener;
 import com.ingenic.glass.camera.util.StorageSpaceUtil;
-
+import android.os.BatteryManager;
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 /**
  * The Camcorder activity.
  */
@@ -198,9 +200,12 @@ public class VideoActivity extends ActivityBase
     private boolean mNeedStartPreview = false;
     private String mTTS = null;
     private boolean mFinished = false;
-    private boolean mHasError = false;
-    private boolean mNoEnoughStorage = false;
 
+    private static final int ERROR_TYPE_NONE = 0;
+    private static final int ERROR_TYPE_NOSPACE = 1;
+    private static final int ERROR_TYPE_LOWPOWER = 2;
+    private static final int ERROR_TYPE_RECODEFAILED = 3;
+    private int mErrorType = ERROR_TYPE_NONE;
     // This Handler is used to post message back onto the main thread of the
     // application
     private class MainHandler extends Handler {
@@ -277,6 +282,22 @@ public class VideoActivity extends ActivityBase
         }
     }
 
+    private BroadcastReceiver mBatteryReceiver = null;
+
+    private class BatteryBroadcastReceiver extends BroadcastReceiver {
+        @Override
+	    public void onReceive(Context context, Intent intent) {
+	    if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)){
+		int currentBatteryVoltage = 
+		    intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE,LOWEST_BATTERY_VOLTAGE);
+		if (currentBatteryVoltage <= LOWEST_BATTERY_VOLTAGE){
+		    Log.d(TAG,"battery is lower :: currentBatteryVoltage= "+currentBatteryVoltage);
+		    finish();
+		}
+	    }
+        }
+    }
+
     private String createName(long dateTaken) {
         Date date = new Date(dateTaken);
         String strFormat = null;
@@ -334,11 +355,25 @@ public class VideoActivity extends ActivityBase
 	mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	long storageSpace = StorageSpaceUtil.getAvailableSpace();
 	if(storageSpace <= StorageSpaceUtil.LOW_STORAGE_THRESHOLD){
-	    mNoEnoughStorage = true;
+	    mErrorType = ERROR_TYPE_NOSPACE;
 	    finish();
 	    return;
 	}
-	
+	try{
+	    int currentBatteryVoltage = Settings.System.getInt(getContentResolver(),
+							       "batteryVoltage");
+	    if(DEBUG) Log.d(TAG,"currentBatteryVoltage = "+currentBatteryVoltage);
+	    if (currentBatteryVoltage <= LOWEST_BATTERY_VOLTAGE){
+		mErrorType = ERROR_TYPE_LOWPOWER;
+		finish();
+		return;
+	    }
+	}catch(SettingNotFoundException  e){
+	    e.printStackTrace();
+	}
+	IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        mBatteryReceiver = new BatteryBroadcastReceiver();
+	registerReceiver(mBatteryReceiver, filter);
 	init();
 
         this.sortCarVideoFileList();
@@ -347,7 +382,7 @@ public class VideoActivity extends ActivityBase
 
 	mAutoRecognize = false;
 	if (mOpenCameraFail || mCameraDisabled) {
-	    mHasError = true;
+	    mErrorType = ERROR_TYPE_RECODEFAILED;
 	    finish();
 	    return;
 	}
@@ -671,9 +706,9 @@ public class VideoActivity extends ActivityBase
 
 	try {
 		if (mService != null) {
-			mService.unregisterInCallListener(mListenerId);
-			unbindService(mServiceConnection);
+		    mService.unregisterInCallListener(mListenerId);
 		}
+		unbindService(mServiceConnection);
 	} catch (RemoteException ex) {
 		ex.printStackTrace();
 	}
@@ -986,7 +1021,7 @@ public class VideoActivity extends ActivityBase
     // from MediaRecorder.OnErrorListener
     public void onError(MediaRecorder mr, int what, int extra) {
         if(DEBUG) Log.e(TAG, "MediaRecorder error. what=" + what + ". extra=" + extra);
-	mHasError = true;
+	mErrorType = ERROR_TYPE_RECODEFAILED;
 	finish();
 	return;
     }
@@ -1409,24 +1444,37 @@ public class VideoActivity extends ActivityBase
 	     // ������������������������������������������������closecamera���������finish������
 	     finishRecorderAndCloseCamera();
 	}
+	if (mBatteryReceiver != null){
+	    unregisterReceiver(mBatteryReceiver);
+	    mBatteryReceiver = null;
+	}
 	if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
 	    synchronized (mLock) {	
-		if(mNoEnoughStorage)
+		switch(mErrorType){
+		case ERROR_TYPE_NOSPACE:
 		    mTTS = getString(R.string.tts_video_record_no_storage);
-		else {
-		    if (mHasError)
-			mTTS = getString(R.string.tts_video_record_error);
-		    else
-			mTTS = getString(R.string.tts_video_record_stop);
+		    break;
+		case ERROR_TYPE_LOWPOWER:
+		    mTTS = getString(R.string.tts_video_record_lowpower);
+		    break;
+		case ERROR_TYPE_RECODEFAILED:
+		    mTTS = getString(R.string.tts_video_record_error);
+		    break;
+		default:
+		    mTTS = getString(R.string.tts_video_record_stop);
+		    break;
+
 		}
 		requestPlayTTS(mTTS);
-		mHasError = false;
-		mNoEnoughStorage = false;
 	    }
 	}
 	
 	mHandler.removeMessages(UPDATE_RECORD_TIME);
 	
+	Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
+	in.setPackage("com.smartglass.device");
+	sendBroadcast(in);
+
 	if (!finished)
 	    super.finish();
     }
@@ -1488,7 +1536,7 @@ public class VideoActivity extends ActivityBase
 	    }
 	        	
 	    if(videoFile == null) {
-		mNoEnoughStorage = true;
+		mErrorType = ERROR_TYPE_NOSPACE;
 		if(mMediaRecorderRecording) {
 		    this.finish();
 		}
@@ -1499,8 +1547,7 @@ public class VideoActivity extends ActivityBase
 		}
 	    }
 	} else {
-	      //set mNoEnoughStorage to true when there is no enough storage add by hky@sctek.cn 20150720
-	    mNoEnoughStorage = true;
+	    mErrorType = ERROR_TYPE_NOSPACE;
 	    if(mMediaRecorderRecording) {
 		this.finish();
 	    }

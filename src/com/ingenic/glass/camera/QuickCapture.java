@@ -44,7 +44,8 @@ import com.ingenic.glass.camera.gallery.ImageGetter;
 import com.ingenic.glass.camera.gallery.BitmapManager;
 import com.ingenic.glass.camera.util.Exif;
 import com.ingenic.glass.camera.util.Util;
-
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
 import com.ingenic.glass.voicerecognizer.api.VoiceRecognizer;
 
 /** The QuickCapture class which can take pictures quickly. */
@@ -172,6 +173,18 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     }
 
     public void start() {
+	try{
+	    int currentBatteryVoltage = Settings.System.getInt(mContext.getContentResolver(),
+							       "batteryVoltage");
+	    if(DEBUG) Log.d(TAG,"currentBatteryVoltage = "+currentBatteryVoltage);
+	    if (currentBatteryVoltage <= ActivityBase.LOWEST_BATTERY_VOLTAGE){
+		mVoiceRecognizer.playTTS(mContext.getString(R.string.tts_take_picture_lowpower));
+		finish();
+		return;
+	    }
+	}catch(SettingNotFoundException  e){
+	    e.printStackTrace();
+	}
 	if(DEBUG) Log.d(TAG,"start in");
 
         mContentResolver = mContext.getContentResolver();
