@@ -33,7 +33,7 @@ import com.ingenic.glass.voicerecognizer.api.VoiceRecognizerActivity;
  */
 abstract public class ActivityBase extends VoiceRecognizerActivity {
     private static final String TAG = "ActivityBase";
-    public static final int LOWEST_BATTERY_VOLTAGE = 3350;
+    public static final int LOWEST_BATTERY_VOLTAGE = 3500;
     private static boolean LOGV = false;
     private int mResultCodeForTesting;
     private boolean mOnResumePending;
