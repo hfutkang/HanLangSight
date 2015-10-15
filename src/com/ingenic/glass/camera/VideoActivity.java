@@ -1690,7 +1690,7 @@ public class VideoActivity extends ActivityBase
 			if(bitmap == null)
 				return;
 			
-			String savePath = videoPath.replace("vedios", ".videothumbnails");
+			String savePath = videoPath.replace("videos", ".videothumbnails");
 
 			File thumbfile = new File(savePath);
 			File videothumbnails = new File(thumbfile.getParent());
