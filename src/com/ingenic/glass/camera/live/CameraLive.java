@@ -210,7 +210,7 @@ public class CameraLive extends ActivityBase
 			return;
 		}
 		readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
-		setCameraIPUDirect(0x07);
+		setCameraIPUDirect(CameraAppImpl.NO_SCREEN);
 		requestStopRecognizeImmediate();
 		startVideoRecording(false);
 		break;
