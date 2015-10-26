@@ -663,19 +663,7 @@ public class PhotoActivity extends ActivityBase
 	Log.e(TAG, "set camera_ipu_direct preview.");
 	mParameters.set("camera_ipu_direct", "preview");
 
-		// Added by dybai_bj 20150625 Config photo resolution
-		SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-		SAXParser saxParser = null;
-		TakePictureSAX takePictureSAX = new TakePictureSAX();
-		try {
-			saxParser = saxParserFactory.newSAXParser();
-			saxParser.parse(new File("/system/etc/takepicture_profiles.xml"), takePictureSAX);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		TakePictureProfile takePictureProfile = takePictureSAX.getTakePicturePorfileList().get(0);
-		mParameters.setPictureSize(Integer.parseInt(takePictureProfile.getWidth())
-				, Integer.parseInt(takePictureProfile.getHeight()));
+	mParameters.setPictureSize(3264, 2448);
 
         mCameraDevice.setParameters(mParameters);
         // Keep preview size up to date.

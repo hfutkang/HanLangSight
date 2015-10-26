@@ -28,6 +28,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import com.ingenic.glass.camera.util.Util;
 
 public class Storage {
     private static final String TAG = "CameraStorage";
@@ -55,6 +56,17 @@ public class Storage {
     public static final long PICTURE_SIZE = 1500000;
 
     private static final int BUFSIZE = 4096;
+
+    public static String generate_QuickPicturefullname() {
+	long dateTaken = System.currentTimeMillis();
+        String title = Util.createJpegName(dateTaken);
+        File dir = new File(Storage.DIRECTORY);
+        if(!dir.exists())
+        	dir.mkdirs();
+
+        String path = DIRECTORY + '/' + title + ".jpg";
+	return path;
+    }
 
     public static Uri addImage(ContentResolver resolver, String title, long date,
                 Location location, int orientation, byte[] jpeg, int width, int height) {

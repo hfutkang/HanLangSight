@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.PixelFormat;
-import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
@@ -28,10 +27,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.Gravity;
-import android.view.animation.Animation;
-import android.view.animation.ScaleAnimation;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.Animation.AnimationListener;
 import android.widget.Toast;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -49,7 +44,7 @@ import android.provider.Settings.SettingNotFoundException;
 import com.ingenic.glass.voicerecognizer.api.VoiceRecognizer;
 
 /** The QuickCapture class which can take pictures quickly. */
-public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Camera.ErrorCallback {
+public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Camera.ErrorCallback  {
 
     private static final String TAG = "QuickCapture";
     private static final boolean DEBUG = true;
@@ -75,17 +70,18 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     private int mCameraId;
     private Camera mCameraDevice;
     private View mRootView;
-    private ImageView mPictureView;
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mWindowParams;
-    private ScaleAnimation mScaleAnimation;
 
     // play camera click sound effect
     private MediaPlayer mPlayer;
 
     private VoiceRecognizer mVoiceRecognizer = null;
-
     private static QuickCapture mInstance = null;
+
+    private boolean IS_USE_QuickCapture_HALStore = false;
+    private boolean QuickCapture_HALStoreJpeg_Flag = true;
+    private String mQuickCapture_HALStoreJpeg_fullpath = null;
 
     public static QuickCapture getMInstance() {
 	    return mInstance;
@@ -107,23 +103,45 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 
         public void onPictureTaken(final byte [] jpegData, final android.hardware.Camera camera) {
             if(DEBUG) Log.d(TAG, "------onPictureTaken in");
-       stopAudio();
-	    startAudio(R.raw.camera_click);
+	    if (DEBUG) {
+		    Log.e(TAG, "IS_USE_QuickCapture_HALStore = " + IS_USE_QuickCapture_HALStore);
+		    Log.e(TAG, "QuickCapture_HALStoreJpeg_Flag = " + QuickCapture_HALStoreJpeg_Flag);
+	    }
+	    /**
+	     * IS_USE_QuickCapture_HALStore   : 是否使用CameraHal存储
+	     * QuickCapture_HALStoreJpeg_Flag : CameraHal存储是否成功
+	     */
+	    if (IS_USE_QuickCapture_HALStore && QuickCapture_HALStoreJpeg_Flag) {
+		    /* 使用CameraHal存储并且存储成功，停止预览，结束快拍 */
+		    if (DEBUG)
+			    Log.d(TAG, "Camera Hal Store Jpeg success.");
+		    //stopAudio();
+		    //startAudio(R.raw.camera_click);
 
-	    //take a bitmap
-	    int orientation = Exif.getOrientation(jpegData);
-	    Bitmap bitmap = Util.makeBitmap(jpegData, 50 * 1024);
-	    bitmap = Util.rotate(bitmap, orientation);
+		    stopPreview();
+		    notifyMediaScanner();
+		    finish();
+	    } else if (IS_USE_QuickCapture_HALStore && (!QuickCapture_HALStoreJpeg_Flag)) {
+		    /* 使用CameraHal存储但是存储失败，此时删除CameraHal存储时生成的文件，并且应用重新存储文件；然后停止预览，结束快拍 */
+		    new File(mQuickCapture_HALStoreJpeg_fullpath).delete();
+		    //stopAudio();
+		    //startAudio(R.raw.camera_click);
 
-	    mPictureView.setImageBitmap(bitmap);
-	    //mPictureView.startAnimation(mScaleAnimation);
+		    stopPreview();
+		    storeImage(jpegData, mLocation);
+		    notifyMediaScanner();
+		    finish();
+	    } else {
+		    /* 否则，重新存储图片，并停止预览，结束快拍 */
+		    //stopAudio();
+		    //startAudio(R.raw.camera_click);
 
-	    stopPreview();
-	    storeImage(jpegData, mLocation);
-	    notifyMediaScanner();
-	    finish();
-        }
-
+		    stopPreview();
+		    storeImage(jpegData, mLocation);
+		    notifyMediaScanner();
+		    finish();
+	    }
+	}
     }
 
     private void storeImage(final byte[] data, Location loc) {
@@ -195,7 +213,7 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 
 	startAudio(R.raw.empty);
 
-       getPreferredCameraId();
+	getPreferredCameraId();
 
 	openCamera();
 
@@ -212,9 +230,11 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	}
 
 	stopAudio();
-	startAudio(R.raw.camera_focus);
+	//startAudio(R.raw.camera_focus);
 
 	initView();
+
+        mCameraDevice.setErrorCallback(this);
 
 	SurfaceHolder holder = mPreviewFrame.getHolder();
         holder.addCallback(this);
@@ -225,12 +245,9 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 
 	mLocationManager = new LocationManager(mContext, null);
         mLocationManager.recordLocation(false);
-	//setPictureAnimation();
     }
 
     private void finish() {
-	if (mPreviewFrameLayout != null)
-	    mPreviewFrameLayout.removeView(mPictureView);
 	if (mWindowManager != null)
 	    mWindowManager.removeView(mRootView);
 	closeCamera();
@@ -285,13 +302,13 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
         if (holder.getSurface() == null) {
             return;
         }
-
         mSurfaceHolder = holder;
 
-        if (mCameraState == PREVIEW_STOPPED) {
-	    mPreviewFrameLayout.addView(mPictureView);
-            startPreview();
+        if (mCameraState == PREVIEW_STOPPED) {		
+	    startPreview();
 	    takePicture();
+	    stopAudio();
+	    startAudio(R.raw.camera_click);
         } else {
 	    if (holder.isCreating()) {
 	    	setPreviewDisplay(holder);
@@ -326,8 +343,6 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     }
 
     private void startPreview() {
-        mCameraDevice.setErrorCallback(this);
-
         // If we're previewing already, stop the preview first (this will blank the screen).
         if (mCameraState != PREVIEW_STOPPED) stopPreview();
 
@@ -360,9 +375,15 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 
     private void setCameraParameters() {
         mParameters = mCameraDevice.getParameters();
-	// mParameters.set("glass_snapshot", 1);//snapshot
-	mParameters.set("preview_mode", CameraAppImpl.NO_DIAPLAY);//ipu_direct
+	mParameters.set("preview_mode", CameraAppImpl.NO_SCREEN);//ipu_direct
+
+	/* 设置使用CameraHal存储 */
+	mQuickCapture_HALStoreJpeg_fullpath = Storage.generate_QuickPicturefullname();
+	IS_USE_QuickCapture_HALStore = true;
+	mParameters.set("quickcapture-halstore-dir", mQuickCapture_HALStoreJpeg_fullpath);
+
 	mParameters.setPictureSize(3264, 2448);
+	mParameters.setPreviewSize(640, 480);
 	mCameraDevice.setParameters(mParameters);
     }
 
@@ -388,40 +409,7 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	// mPreviewFrame.setLayoutParams(new FrameLayout.LayoutParams(windowW, windowH));
 	mPreviewFrame.setLayoutParams(new FrameLayout.LayoutParams(1, 1));
 
-	mPictureView = new ImageView(mContext);
-    	mPictureView.setBackgroundResource(R.drawable.rectangle);//白色矩形边框
-    	mPictureView.setScaleType(ImageView.ScaleType.FIT_XY);
-    	mPictureView.setLayoutParams(new android.view.ViewGroup.LayoutParams(windowW, windowH));
-	
 	mWindowManager.addView(mRootView, mWindowParams);
-    }
-
-    private void setPictureAnimation() {
-    	mScaleAnimation = new ScaleAnimation(1,0,
-					     1,0,
-					     Animation.RELATIVE_TO_SELF,0.5f,
-					     Animation.RELATIVE_TO_SELF,0.5f);
-    	mScaleAnimation.setDuration(500);//0.5s
-	mScaleAnimation.setStartOffset(200);//0.2s
-	mScaleAnimation.setInterpolator(new LinearInterpolator());
-	mScaleAnimation.setFillAfter(true);
-	mScaleAnimation.setAnimationListener(new AnimationListener() {
-		@Override
-		public void onAnimationStart(Animation animation) {
-		    if(DEBUG) Log.d(TAG,"onAnimationStart");
-		    // Do nothing.
-		}
-
-		@Override
-		public void onAnimationRepeat(Animation animation) {
-		    // Do nothing.
-		}
-
-		@Override
-		public void onAnimationEnd(Animation animation) {
-		    finish();
-		}
-	    });
     }
 
     private void notifyMediaScanner() {
@@ -476,8 +464,16 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     @Override
     public void onError(int error, Camera camera) {
         Log.e(TAG, "Got camera error callback. error=" + error);
-	startAudio(R.raw.camera_error);
-	stopPreview();
-	finish();	
+
+	switch(error) {
+	/* 如果CameraHal存储时，发生错误 */
+	case CameraAppImpl.CAMERA_ERROR_QUICKCAPTURE_HAL_STORE:
+		QuickCapture_HALStoreJpeg_Flag = false;
+		break;
+	default :
+		startAudio(R.raw.camera_error);
+		stopPreview();
+		finish();	
+	}
     }
 }

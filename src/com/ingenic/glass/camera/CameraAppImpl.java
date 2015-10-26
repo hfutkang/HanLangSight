@@ -24,10 +24,18 @@ public class CameraAppImpl extends Application {
 
 	public static final int DCIM=0;
 	public static final int OTHER=1;
-	public static final int NO_DIAPLAY = 0x00;
-	public static final int NORMAL_DIAPLAY = 0x04;
-	public static final int LOW_POWER_DIAPLAY_CAPTURE = 0x06;
-	public static final int LOW_POWER_DIAPLAY_VIDEO = 0x07;
+	public static final int CAMERA_ERROR_QUICKCAPTURE_HAL_STORE = 5;
+
+	// 1.没有屏幕
+	public static final int NO_SCREEN = 0x00;
+	// 2. 快拍模式
+	public static final int CAPTURE = 0x08;
+	// 3. 正常显示
+	public static final int NORMAL_DISPLAY = 0x0c;
+	// 4. 低功耗显示拍照
+	public static final int LOW_POWER_DISPLAY_CAPTURE = 0x0e;
+	// 5. 低功耗显示录像
+	public static final int LOW_POWER_DISPLAY_VIDEO = 0x0f;
 
 	@Override
 		public void onCreate() {

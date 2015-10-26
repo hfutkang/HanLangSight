@@ -227,7 +227,7 @@ public class VideoActivity extends ActivityBase
 				return;
 		}
 		readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
-		setCameraPreviewMode(CameraAppImpl.NO_DIAPLAY);
+		setCameraPreviewMode(CameraAppImpl.NO_SCREEN);
 		requestStopRecognizeImmediate();
 		try {
 				Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_START");
