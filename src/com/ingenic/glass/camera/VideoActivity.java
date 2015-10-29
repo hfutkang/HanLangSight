@@ -1500,7 +1500,7 @@ public class VideoActivity extends ActivityBase
     private void addWakeLock(){
 	if(mWakeLock==null){
 	    pManager = ((PowerManager) getSystemService(POWER_SERVICE));  
-	    mWakeLock = pManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);  
+	    mWakeLock = pManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,TAG);  
 	    mWakeLock.acquire(); 
 	}
     }
