@@ -389,13 +389,14 @@
 
     <string name="video_record_error">Camera error</string>
     <!-- tts -->
+    <string name="tts_take_picture_failed">take picture failed, retry</string>
     <string name="tts_video_record_start">Record start</string>
     <string name="tts_video_record_stop">Record  stop</string>
-    <string name="tts_video_record_error">Record error</string>
+    <string name="tts_video_record_error">Record error retry</string>
     <string name="tts_video_record_no_storage">No enough space</string>
     <string name="tts_video_record_lowpower">No enough power</string>
     <string name="tts_take_picture_lowpower">No enough power</string>
     <string name="tts_live_video_record_start">Camera live show start</string>
-    <string name="tts_live_video_record_stop">Camera live show stop</string>
+    <string name="tts_live_video_record_stop">Camera live show stop retry</string>
     <string name="tts_live_video_record_error">Camera live show error</string>
 </resources>

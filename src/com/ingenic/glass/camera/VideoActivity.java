@@ -510,8 +510,12 @@ public class VideoActivity extends ActivityBase
 		    try {
 			if(DEBUG) Log.e(TAG,"---opencamera mCameraId="+mCameraId);
 			mCameraDevice = Util.openCamera(VideoActivity.this, mCameraId);
-			if (mCameraDevice == null)
+			if (mCameraDevice == null){
 			    mOpenCameraFail = true;
+			}else {
+			    mCameraDevice.setErrorCallback(mErrorCallback);
+			    mErrorCallback.setHandler(mHandler);
+			}
 		    } catch (CameraHardwareException e) {
 			mOpenCameraFail = true;
 		    } catch (CameraDisabledException e) {
@@ -1449,7 +1453,7 @@ public class VideoActivity extends ActivityBase
 	    mBatteryReceiver = null;
 	}
 	if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
-	    synchronized (mLock) {	
+	    synchronized (mLock) {
 		switch(mErrorType){
 		case ERROR_TYPE_NOSPACE:
 		    mTTS = getString(R.string.tts_video_record_no_storage);
@@ -1459,6 +1463,11 @@ public class VideoActivity extends ActivityBase
 		    break;
 		case ERROR_TYPE_RECODEFAILED:
 		    mTTS = getString(R.string.tts_video_record_error);
+		    Log.e(TAG, "record failed.");
+		    if (mCurrentVideoFilename != null)  {
+			    Log.e(TAG, "delete success");
+			    deleteVideoFile(mCurrentVideoFilename);
+		    }
 		    break;
 		default:
 		    mTTS = getString(R.string.tts_video_record_stop);

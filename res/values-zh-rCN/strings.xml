@@ -156,14 +156,15 @@
 
     <string name="video_record_error">眼镜端录像异常</string>
     <!-- tts -->
+    <string name="tts_take_picture_failed">拍照失败，请重试</string>
     <string name="tts_video_record_start">开始录像</string>
     <string name="tts_video_record_stop">正在停止录像</string>
-    <string name="tts_video_record_error">录像出错，停止录像</string>
+    <string name="tts_video_record_error">录像失败，请重试</string>
     <string name="tts_video_record_no_storage">空间不足，停止录像</string>
     <string name="tts_video_record_lowpower">电量不足，停止录像</string>
     <string name="tts_take_picture_lowpower">电量不足，停止拍照</string>
 
     <string name="tts_live_video_record_start">开始直播录像</string>
     <string name="tts_live_video_record_stop">正在停止录像直播</string>
-    <string name="tts_live_video_record_error">录像直播出错</string>
+    <string name="tts_live_video_record_error">直播失败，请重试</string>
 </resources>

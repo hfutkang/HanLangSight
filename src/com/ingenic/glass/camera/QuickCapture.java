@@ -466,9 +466,14 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
         Log.e(TAG, "Got camera error callback. error=" + error);
 
 	switch(error) {
-	/* 如果CameraHal存储时，发生错误 */
+		/* 如果CameraHal存储时，发生错误 */
 	case CameraAppImpl.CAMERA_ERROR_QUICKCAPTURE_HAL_STORE:
 		QuickCapture_HALStoreJpeg_Flag = false;
+		break;
+	case CameraAppImpl.CAMERA_ERROR_PREVIEW:
+		Log.e(TAG, "CameraAppImpl.CAMERA_ERROR_PREVIEW, then finish");
+		mVoiceRecognizer.playTTS(mContext.getString(R.string.tts_take_picture_failed));
+		finish();
 		break;
 	default :
 		startAudio(R.raw.camera_error);

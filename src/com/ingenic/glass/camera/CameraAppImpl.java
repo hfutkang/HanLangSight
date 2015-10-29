@@ -25,6 +25,7 @@ public class CameraAppImpl extends Application {
 	public static final int DCIM=0;
 	public static final int OTHER=1;
 	public static final int CAMERA_ERROR_QUICKCAPTURE_HAL_STORE = 5;
+        public static final int CAMERA_ERROR_PREVIEW = 2;
 
 	// 1.没有屏幕
 	public static final int NO_SCREEN = 0x00;

@@ -417,8 +417,12 @@ public class CameraLive extends ActivityBase
 		    try {
 			if(DEBUG) Log.e(TAG,"---opencamera mCameraId="+mCameraId);
 			mCameraDevice = Util.openCamera(CameraLive.this, mCameraId);
-			if (mCameraDevice == null)
+			if (mCameraDevice == null){
 			    mOpenCameraFail = true;
+			}else {
+			    mCameraDevice.setErrorCallback(mErrorCallback);
+			    mErrorCallback.setHandler(mHandler);
+			}
 		    } catch (CameraHardwareException e) {
 			mOpenCameraFail = true;
 		    } catch (CameraDisabledException e) {
@@ -941,7 +945,10 @@ public class CameraLive extends ActivityBase
             // We may have run out of space on the sdcard.
             stopVideoRecording();
             updateAndShowStorageHint();
-        }
+        } else {
+		mHasError = true;
+		finish();
+	}
     }
 
     // from MediaRecorder.OnInfoListener
@@ -1317,9 +1324,11 @@ public class CameraLive extends ActivityBase
 	if (mIsCRUISEBoard) {
 		if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
 		    String tts = null;
-		    if (mHasError)
+		    if (mHasError) {
+			if (mCurrentVideoFilename != null) 
+				deleteVideoFile(mCurrentVideoFilename);
 			tts = getString(R.string.tts_live_video_record_error);
-		    else 
+		    } else 
 			tts = getString(R.string.tts_live_video_record_stop);
 		    requestPlayTTS(tts);
 		    mHasError = false;
