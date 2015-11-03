@@ -433,9 +433,15 @@ public class VideoActivity extends ActivityBase
 	    File carVideoDirectory = new File(Storage.DIRECTORY_VIDEO);
 	    if (!carVideoDirectory.exists()) {
 		carVideoDirectory.mkdirs();
+		carVideoDirectory.setExecutable(true, false);
+		carVideoDirectory.setReadable(true, false);
+		carVideoDirectory.setWritable(true, false);
 	    } else if (!carVideoDirectory.isDirectory()) {
 		carVideoDirectory.delete();
 		carVideoDirectory.mkdirs();
+		carVideoDirectory.setExecutable(true, false);
+		carVideoDirectory.setReadable(true, false);
+		carVideoDirectory.setWritable(true, false);
 	    }
 
 	      // Filter the car video files.
@@ -932,7 +938,10 @@ public class VideoActivity extends ActivityBase
 			File videoFile = new File(mVideoFilename);
 				if(!videoFile.exists()) {
 					videoFile.createNewFile();
-					Runtime.getRuntime().exec("chmod 777 " + videoFile.getAbsolutePath());
+//					Runtime.getRuntime().exec("chmod 777 " + videoFile.getAbsolutePath());
+					videoFile.setExecutable(true, false);
+					videoFile.setWritable(true, false);
+					videoFile.setReadable(true, false);
 				}	
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -967,8 +976,12 @@ public class VideoActivity extends ActivityBase
 
 	//create path /sdcard/IGlass/Video when it is not exist
         File dir = new File(Storage.DIRECTORY_VIDEO);
-        if(!dir.exists())
+        if(!dir.exists()) {
         	dir.mkdirs();
+        				dir.setExecutable(true, false);
+        				dir.setReadable(true, false);
+        				dir.setWritable(true, false);
+        }
 
         mVideoFilename = Storage.DIRECTORY_VIDEO + '/' + filename;
         mCurrentVideoValues = new ContentValues(7);
@@ -1705,6 +1718,9 @@ public class VideoActivity extends ActivityBase
 			File videothumbnails = new File(thumbfile.getParent());
 			if (!videothumbnails.exists()) {
 				videothumbnails.mkdirs();
+				videothumbnails.setReadable(true, false);
+				videothumbnails.setWritable(true, false);
+				videothumbnails.setExecutable(true, false);
 			}
 
 			thumbfile.delete();

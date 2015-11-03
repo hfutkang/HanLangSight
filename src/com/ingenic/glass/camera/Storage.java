@@ -61,8 +61,12 @@ public class Storage {
 	long dateTaken = System.currentTimeMillis();
         String title = Util.createJpegName(dateTaken);
         File dir = new File(Storage.DIRECTORY);
-        if(!dir.exists())
+        if(!dir.exists()) {
         	dir.mkdirs();
+        	dir.setExecutable(true, false);
+        	dir.setReadable(true, false);
+        	dir.setWritable(true, false);
+        }
 
         String path = DIRECTORY + '/' + title + ".jpg";
 	return path;
@@ -79,7 +83,11 @@ public class Storage {
 			Log.e(TAG, outFile.getAbsolutePath());
 			if(!outFile.exists()) {
 				outFile.createNewFile();
-				Runtime.getRuntime().exec("chmod 777 " + outFile.getAbsolutePath());
+				outFile.setExecutable(true, false);
+				outFile.setReadable(true, false);
+				outFile.setWritable(true, false);
+//				Runtime.getRuntime().exec("chmod 777 " + outFile.getAbsolutePath());
+				
 			}
             out = new FileOutputStream(outFile);
             out.write(jpeg);
@@ -129,8 +137,12 @@ public class Storage {
         }
 
         File dir = new File(DIRECTORY);
-	if(!dir.exists())
+	if(!dir.exists()) {
 	    dir.mkdirs();
+	    dir.setExecutable(true, false);
+	    dir.setWritable(true, false);
+	    dir.setReadable(true, false);
+	}
 
         if (!dir.isDirectory() || !dir.canWrite()) {
             return UNAVAILABLE;
