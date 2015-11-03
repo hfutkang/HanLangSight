@@ -19,9 +19,15 @@ package com.ingenic.glass.camera;
 import com.ingenic.glass.camera.util.Util;
 
 import android.app.Application;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 
 public class CameraAppImpl extends Application {
 
+        private final String TAG = "CameraAppImpl";
 	public static final int DCIM=0;
 	public static final int OTHER=1;
 	public static final int CAMERA_ERROR_QUICKCAPTURE_HAL_STORE = 5;
@@ -38,11 +44,46 @@ public class CameraAppImpl extends Application {
 	// 5. 低功耗显示录像
 	public static final int LOW_POWER_DISPLAY_VIDEO = 0x0f;
 
+        private final int MSG_RELEASE_WAKE_LOCK = 1;
+        
+
+        private WakeLock  mWakeLock;
+    
+        private Handler mHandler = new Handler(){
+		@Override
+		public void handleMessage(Message msg) {
+		    switch(msg.what){
+		    case MSG_RELEASE_WAKE_LOCK:
+			mWakeLock.release();
+			Log.d(TAG,"WakeLock has release for timeout");
+			break;
+		    }
+		}
+	    };
+    
 	@Override
 		public void onCreate() {
 		super.onCreate();
 		Util.initialize(this);
+		PowerManager manager = ((PowerManager) getSystemService(POWER_SERVICE));  
+		mWakeLock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"camera");  
 	}
+
+        public void acquireWakeLock(){
+	    Log.d(TAG,"Wakelock has acquire");
+	    mWakeLock.acquire(); 
+	}
+
+        public void releaseWakeLock(){
+	    Log.d(TAG,"WakeLock has release");
+	    mWakeLock.release();
+	} 
+
+        public void releaseWakeLock(int timeout){
+	    Log.d(TAG,"releaseWakeLock :: timeout=" +timeout);
+	    mHandler.sendEmptyMessageDelayed(MSG_RELEASE_WAKE_LOCK, timeout);
+	}
+    
 }
 
 

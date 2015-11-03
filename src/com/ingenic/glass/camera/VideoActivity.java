@@ -32,8 +32,6 @@ import android.os.Process;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.util.Log;
@@ -188,8 +186,8 @@ public class VideoActivity extends ActivityBase
     //gallery
     private GestureDetector mGestureDetector;
     private  Thread mStartPreviewThread ;
-    private PowerManager pManager;
-    private WakeLock  mWakeLock;
+    
+
 
     // check incall state and add tts
     private AudioManager mAudioManager ;
@@ -206,6 +204,8 @@ public class VideoActivity extends ActivityBase
     private static final int ERROR_TYPE_LOWPOWER = 2;
     private static final int ERROR_TYPE_RECODEFAILED = 3;
     private int mErrorType = ERROR_TYPE_NONE;
+
+    private CameraAppImpl mApplication;
     // This Handler is used to post message back onto the main thread of the
     // application
     private class MainHandler extends Handler {
@@ -353,6 +353,7 @@ public class VideoActivity extends ActivityBase
 	root.setOnTouchListener(this);
 
 	mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+	mApplication = (CameraAppImpl)this.getApplication();
 	long storageSpace = StorageSpaceUtil.getAvailableSpace();
 	if(storageSpace <= StorageSpaceUtil.LOW_STORAGE_THRESHOLD){
 	    mErrorType = ERROR_TYPE_NOSPACE;
@@ -483,6 +484,7 @@ public class VideoActivity extends ActivityBase
 	public void onStop() {
         super.onStop();
 	if(DEBUG) Log.d(TAG,"--onStop in");
+	finish();
     }
 
     private void init(){
@@ -696,7 +698,7 @@ public class VideoActivity extends ActivityBase
 	// do it in finish()
         // finishRecorderAndCloseCamera();
         closeVideoFileDescriptor();
-        releaseWakeLock();
+        mApplication.releaseWakeLock(5000);
 
         if (mReceiver != null) {
             unregisterReceiver(mReceiver);
@@ -1508,22 +1510,9 @@ public class VideoActivity extends ActivityBase
 	p.set("preview_mode", mode);
 	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);	
 	mCameraDevice.setParameters(p);
-	addWakeLock();	
+	mApplication.acquireWakeLock();	
     }
-    private void addWakeLock(){
-	if(mWakeLock==null){
-	    pManager = ((PowerManager) getSystemService(POWER_SERVICE));  
-	    mWakeLock = pManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,TAG);  
-	    mWakeLock.acquire(); 
-	}
-    }
-    private void releaseWakeLock(){
-	if(null != mWakeLock){  
-	    mWakeLock.release();
-	    mWakeLock=null;
-	}
-    } 
-
+   
     private void checkVideoFileSize () {
 	if (this.mIsStorageSpaceLess) {
         	long storageSpace = StorageSpaceUtil.getAvailableSpace();
