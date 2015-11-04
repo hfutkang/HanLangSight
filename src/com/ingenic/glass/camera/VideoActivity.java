@@ -1452,6 +1452,7 @@ public class VideoActivity extends ActivityBase
     @Override
     public void finish() {
 	boolean finished;
+	if (mFinished) return;
 	synchronized (mLock) {	
 	    finished = mFinished;
 	    mFinished = true;
