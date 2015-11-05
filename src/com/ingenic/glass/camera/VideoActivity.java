@@ -354,6 +354,15 @@ public class VideoActivity extends ActivityBase
 
 	mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 	mApplication = (CameraAppImpl)this.getApplication();
+	mApplication.acquireWakeLock();
+
+	if (!bindService(new Intent("com.ingenic.glass.incall.AudioModeService"), 
+			 mServiceConnection, Context.BIND_AUTO_CREATE)) {
+	    synchronized (mLock) {
+		mNeedWaitInCallConnected = false;
+	    }
+	}
+
 	long storageSpace = StorageSpaceUtil.getAvailableSpace();
 	if(storageSpace <= StorageSpaceUtil.LOW_STORAGE_THRESHOLD){
 	    mErrorType = ERROR_TYPE_NOSPACE;
@@ -386,12 +395,6 @@ public class VideoActivity extends ActivityBase
 	    mErrorType = ERROR_TYPE_RECODEFAILED;
 	    finish();
 	    return;
-	}
-	if (!bindService(new Intent("com.ingenic.glass.incall.AudioModeService"), 
-			 mServiceConnection, Context.BIND_AUTO_CREATE)) {
-	    synchronized (mLock) {
-		mNeedWaitInCallConnected = false;
-	    }
 	}
 	if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
 	    synchronized (mLock) {						
@@ -1510,8 +1513,7 @@ public class VideoActivity extends ActivityBase
 	Parameters p = mCameraDevice.getParameters();
 	p.set("preview_mode", mode);
 	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);	
-	mCameraDevice.setParameters(p);
-	mApplication.acquireWakeLock();	
+	mCameraDevice.setParameters(p);	
     }
    
     private void checkVideoFileSize () {

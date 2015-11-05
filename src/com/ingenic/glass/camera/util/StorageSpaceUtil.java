@@ -11,7 +11,7 @@ public class StorageSpaceUtil {
 	public static final long UNAVAILABLE = -1L;
     public static final long PREPARING = -2L;
     public static final long UNKNOWN_SIZE = -3L;
-    public static final long LOW_STORAGE_THRESHOLD= 50000000;
+    public static final long LOW_STORAGE_THRESHOLD= 100000000;
 
     private static final String BASE_DIR = Environment.getExternalStorageDirectory().toString();
 
