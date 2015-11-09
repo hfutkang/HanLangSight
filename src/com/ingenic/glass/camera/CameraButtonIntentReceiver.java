@@ -35,12 +35,14 @@ public class CameraButtonIntentReceiver extends BroadcastReceiver{
 			if (DEBUG) Log.d(TAG, "--stop video");
 	    		VideoActivity.getMInstance().finish();
 			
-	    	} else {
+	    	} else if (QuickCapture.getMInstance() == null){
 	    		Intent intentVideo = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 	    		intentVideo.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			if (DEBUG) Log.d(TAG, "--start video");
 	    		context.startActivity(intentVideo);
-	    	}
+	    	}else{
+		    Log.e("camera is working.so recode be refused!");
+		}
 	    }
 	}
 }
