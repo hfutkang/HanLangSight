@@ -41,7 +41,7 @@ public class CameraButtonIntentReceiver extends BroadcastReceiver{
 			if (DEBUG) Log.d(TAG, "--start video");
 	    		context.startActivity(intentVideo);
 	    	}else{
-		    Log.e("camera is working.so recode be refused!");
+		    Log.e(TAG,"camera is working.so recode be refused!");
 		}
 	    }
 	}
