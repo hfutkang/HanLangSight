@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
@@ -34,7 +35,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
-
+import android.content.ContentValues;
 import com.ingenic.glass.camera.gallery.ImageGetter;
 import com.ingenic.glass.camera.gallery.BitmapManager;
 import com.ingenic.glass.camera.util.Exif;
@@ -42,6 +43,8 @@ import com.ingenic.glass.camera.util.Util;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import com.ingenic.glass.voicerecognizer.api.VoiceRecognizer;
+import android.provider.MediaStore.Images;
+import android.provider.MediaStore.Images.ImageColumns;
 
 /** The QuickCapture class which can take pictures quickly. */
 public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Camera.ErrorCallback  {
@@ -413,15 +416,36 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     }
 
     private void notifyMediaScanner() {
-	Thread thread = new Thread() {
-		@Override
-		    public void run() {
-		    ImageGetter ig = new ImageGetter(mContentResolver, Images.Media.EXTERNAL_CONTENT_URI,
-						     PhotoActivity.SORT_DESCENDING, null);
-		}
-	    };
-        BitmapManager.instance().allowThreadDecoding(thread);
-        thread.start();
+	// Thread thread = new Thread() {
+	// 	@Override
+	// 	    public void run() {
+	// 	    ImageGetter ig = new ImageGetter(mContentResolver, Images.Media.EXTERNAL_CONTENT_URI,
+	// 					     PhotoActivity.SORT_DESCENDING, null);
+	// 	}
+	//     };
+        // BitmapManager.instance().allowThreadDecoding(thread);
+        // thread.start();
+
+	ContentResolver resolver = mContext.getContentResolver();
+	// Insert into MediaStore.
+	ContentValues values = new ContentValues(2);
+	//values.put(ImageColumns.TITLE, title);
+	//values.put(ImageColumns.DISPLAY_NAME, mQuickCapture_HALStoreJpeg_fullpath);
+	//values.put(ImageColumns.DATE_TAKEN, date);
+	values.put(ImageColumns.MIME_TYPE, "image/jpeg");
+	//values.put(ImageColumns.ORIENTATION, orientation);
+	values.put(ImageColumns.DATA, mQuickCapture_HALStoreJpeg_fullpath);
+	//values.put(ImageColumns.SIZE, jpeg.length);
+	//values.put(ImageColumns.WIDTH, width);
+	//values.put(ImageColumns.HEIGHT, height);
+
+	Uri uri = resolver.insert(Images.Media.EXTERNAL_CONTENT_URI, values);
+	if (uri == null) {
+		Log.e(TAG, "Failed to write MediaStore");
+	} else {
+		BitmapManager.instance().getThumbnail(mContentResolver, ContentUris.parseId(uri),
+						      Images.Thumbnails.MINI_KIND, null, false);
+	}
     }
 
     synchronized private void startAudio(int resid){
