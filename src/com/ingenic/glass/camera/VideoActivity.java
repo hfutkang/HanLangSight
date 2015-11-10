@@ -1228,7 +1228,7 @@ public class VideoActivity extends ActivityBase
             mMediaRecorderRecording = false;
 //            showRecordingUI(false);
             if (shouldAddToMediaStoreNow) {
-//                addVideoToMediaStore();
+               addVideoToMediaStore();
 //                BitmapManager.instance().getThumbnail(resolver, ContentUris.parseId(mCurrentVideoUri),
 //                		Video.Thumbnails.MINI_KIND, null, true);
             	creatAndSaveVideoThumbnail(mCurrentVideoFilename);

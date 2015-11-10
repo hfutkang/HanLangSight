@@ -440,12 +440,12 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	//values.put(ImageColumns.HEIGHT, height);
 
 	Uri uri = resolver.insert(Images.Media.EXTERNAL_CONTENT_URI, values);
-	if (uri == null) {
-		Log.e(TAG, "Failed to write MediaStore");
-	} else {
-		BitmapManager.instance().getThumbnail(mContentResolver, ContentUris.parseId(uri),
-						      Images.Thumbnails.MINI_KIND, null, false);
-	}
+	// if (uri == null) {
+	// 	Log.e(TAG, "Failed to write MediaStore");
+	// } else {
+	// 	BitmapManager.instance().getThumbnail(mContentResolver, ContentUris.parseId(uri),
+	// 					      Images.Thumbnails.MINI_KIND, null, false);
+	// }
     }
 
     synchronized private void startAudio(int resid){
