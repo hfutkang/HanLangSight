@@ -437,15 +437,25 @@ public class VideoActivity extends ActivityBase
 	    File carVideoDirectory = new File(Storage.DIRECTORY_VIDEO);
 	    if (!carVideoDirectory.exists()) {
 		carVideoDirectory.mkdirs();
-		carVideoDirectory.setExecutable(true, false);
-		carVideoDirectory.setReadable(true, false);
-		carVideoDirectory.setWritable(true, false);
+		try {
+		Runtime.getRuntime().exec("chmod 777 " + carVideoDirectory.getAbsolutePath());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//		carVideoDirectory.setExecutable(true, false);
+//		carVideoDirectory.setReadable(true, false);
+//		carVideoDirectory.setWritable(true, false);
 	    } else if (!carVideoDirectory.isDirectory()) {
 		carVideoDirectory.delete();
 		carVideoDirectory.mkdirs();
-		carVideoDirectory.setExecutable(true, false);
-		carVideoDirectory.setReadable(true, false);
-		carVideoDirectory.setWritable(true, false);
+		try {
+		Runtime.getRuntime().exec("chmod 777 " + carVideoDirectory.getAbsolutePath());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//		carVideoDirectory.setExecutable(true, false);
+//		carVideoDirectory.setReadable(true, false);
+//		carVideoDirectory.setWritable(true, false);
 	    }
 
 	      // Filter the car video files.
@@ -983,9 +993,14 @@ public class VideoActivity extends ActivityBase
         File dir = new File(Storage.DIRECTORY_VIDEO);
         if(!dir.exists()) {
         	dir.mkdirs();
-        				dir.setExecutable(true, false);
-        				dir.setReadable(true, false);
-        				dir.setWritable(true, false);
+        	try {
+        	Runtime.getRuntime().exec("chmod 777 " + dir.getAbsolutePath());
+        }catch (Exception e) {
+        	e.printStackTrace();
+        }
+//        				dir.setExecutable(true, false);
+//        				dir.setReadable(true, false);
+//        				dir.setWritable(true, false);
         }
 
         mVideoFilename = Storage.DIRECTORY_VIDEO + '/' + filename;
@@ -1228,9 +1243,11 @@ public class VideoActivity extends ActivityBase
             mMediaRecorderRecording = false;
 //            showRecordingUI(false);
             if (shouldAddToMediaStoreNow) {
-               addVideoToMediaStore();
+//               addVideoToMediaStore();
 //                BitmapManager.instance().getThumbnail(resolver, ContentUris.parseId(mCurrentVideoUri),
 //                		Video.Thumbnails.MINI_KIND, null, true);
+//            	String path = mVideoFilename.replace(Storage.DIRECTORY_VIDEO, "/sdcard/HanLang_videos");
+//            	sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
             	creatAndSaveVideoThumbnail(mCurrentVideoFilename);
             }
 	 
@@ -1710,9 +1727,14 @@ public class VideoActivity extends ActivityBase
 			File videothumbnails = new File(thumbfile.getParent());
 			if (!videothumbnails.exists()) {
 				videothumbnails.mkdirs();
-				videothumbnails.setReadable(true, false);
-				videothumbnails.setWritable(true, false);
-				videothumbnails.setExecutable(true, false);
+				try {
+				Runtime.getRuntime().exec("chmod 777 " + videothumbnails.getAbsolutePath());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				//				videothumbnails.setReadable(true, false);
+//				videothumbnails.setWritable(true, false);
+//				videothumbnails.setExecutable(true, false);
 			}
 
 			thumbfile.delete();

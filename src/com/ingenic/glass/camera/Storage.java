@@ -28,6 +28,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+
 import com.ingenic.glass.camera.util.Util;
 
 public class Storage {
@@ -63,9 +65,15 @@ public class Storage {
         File dir = new File(Storage.DIRECTORY);
         if(!dir.exists()) {
         	dir.mkdirs();
-        	dir.setExecutable(true, false);
-        	dir.setReadable(true, false);
-        	dir.setWritable(true, false);
+        	try {
+				Runtime.getRuntime().exec("chmod 777 " + dir.getAbsolutePath());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//        	dir.setExecutable(true, false);
+//        	dir.setReadable(true, false);
+//        	dir.setWritable(true, false);
         }
 
         String path = DIRECTORY + '/' + title + ".jpg";

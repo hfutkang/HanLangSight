@@ -416,36 +416,15 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     }
 
     private void notifyMediaScanner() {
-	// Thread thread = new Thread() {
-	// 	@Override
-	// 	    public void run() {
-	// 	    ImageGetter ig = new ImageGetter(mContentResolver, Images.Media.EXTERNAL_CONTENT_URI,
-	// 					     PhotoActivity.SORT_DESCENDING, null);
-	// 	}
-	//     };
-        // BitmapManager.instance().allowThreadDecoding(thread);
-        // thread.start();
-
-	ContentResolver resolver = mContext.getContentResolver();
-	// Insert into MediaStore.
-	ContentValues values = new ContentValues(2);
-	//values.put(ImageColumns.TITLE, title);
-	//values.put(ImageColumns.DISPLAY_NAME, mQuickCapture_HALStoreJpeg_fullpath);
-	//values.put(ImageColumns.DATE_TAKEN, date);
-	values.put(ImageColumns.MIME_TYPE, "image/jpeg");
-	//values.put(ImageColumns.ORIENTATION, orientation);
-	values.put(ImageColumns.DATA, mQuickCapture_HALStoreJpeg_fullpath);
-	//values.put(ImageColumns.SIZE, jpeg.length);
-	//values.put(ImageColumns.WIDTH, width);
-	//values.put(ImageColumns.HEIGHT, height);
-
-	Uri uri = resolver.insert(Images.Media.EXTERNAL_CONTENT_URI, values);
-	// if (uri == null) {
-	// 	Log.e(TAG, "Failed to write MediaStore");
-	// } else {
-	// 	BitmapManager.instance().getThumbnail(mContentResolver, ContentUris.parseId(uri),
-	// 					      Images.Thumbnails.MINI_KIND, null, false);
-	// }
+	Thread thread = new Thread() {
+		@Override
+		    public void run() {
+		    ImageGetter ig = new ImageGetter(mContentResolver, Images.Media.EXTERNAL_CONTENT_URI,
+						     PhotoActivity.SORT_DESCENDING, null);
+		}
+	    };
+        BitmapManager.instance().allowThreadDecoding(thread);
+        thread.start();
     }
 
     synchronized private void startAudio(int resid){
