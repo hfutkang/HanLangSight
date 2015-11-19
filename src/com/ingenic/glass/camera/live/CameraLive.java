@@ -74,10 +74,10 @@ import android.provider.Settings.SettingNotFoundException;
  */
 public class CameraLive extends ActivityBase
     implements /*CameraPreference.OnPreferenceChangedListener,*/
-	       SurfaceHolder.Callback,
-	       MediaRecorder.OnErrorListener, 
-	       MediaRecorder.OnInfoListener,
-	       EffectsRecorder.EffectsListener,OnTouchListener{    
+    SurfaceHolder.Callback,
+    MediaRecorder.OnErrorListener, 
+    MediaRecorder.OnInfoListener,
+    EffectsRecorder.EffectsListener,OnTouchListener{    
     private static final String TAG = "CameraLive";
     private static final boolean DEBUG = true;	
     private static final int CLEAR_SCREEN_DELAY = 4;
@@ -121,8 +121,6 @@ public class CameraLive extends ActivityBase
 
     private boolean mOpenCameraFail = false;
     private boolean mCameraDisabled = false;
-
-    private long mStorageSpace;
 
     private MediaRecorder mMediaRecorder;
     private EffectsRecorder mEffectsRecorder;
@@ -178,7 +176,7 @@ public class CameraLive extends ActivityBase
     private  Thread mStartPreviewThread ;
     private PowerManager pManager;
     private WakeLock  mWakeLock;
-	private static CameraLive mInstance = null;
+    private static CameraLive mInstance = null;
 
     // check incall state and add tts
     private AudioManager mAudioManager ;
@@ -195,7 +193,7 @@ public class CameraLive extends ActivityBase
     // application
     private class MainHandler extends Handler {
         @Override
-	    public void handleMessage(Message msg) {
+	public void handleMessage(Message msg) {
 	    if(DEBUG) Log.d(TAG,"handleMessage in msg.what="+msg.what);
             switch (msg.what) {
 	    case UPDATE_RECORD_TIME: {
@@ -226,7 +224,7 @@ public class CameraLive extends ActivityBase
 
     private class MyBroadcastReceiver extends BroadcastReceiver {
         @Override
-	    public void onReceive(Context context, Intent intent) {
+	public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 	    if (action.equals(CAMERA_ACTION_STOP)) {		    
 	        finish();
@@ -236,9 +234,9 @@ public class CameraLive extends ActivityBase
     }
 
     private BroadcastReceiver mBatteryReceiver = null;
-   private class BatteryBroadcastReceiver extends BroadcastReceiver {
+    private class BatteryBroadcastReceiver extends BroadcastReceiver {
         @Override
-	    public void onReceive(Context context, Intent intent) {
+	public void onReceive(Context context, Intent intent) {
 	    if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)){
 		int currentBatteryVoltage = 
 		    intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE,LOWEST_BATTERY_VOLTAGE);
@@ -290,17 +288,17 @@ public class CameraLive extends ActivityBase
     private String createName(long dateTaken) {
         Date date = new Date(dateTaken);
         SimpleDateFormat dateFormat = new SimpleDateFormat(
-							   getString(R.string.live_video_file_name_format));
+	    getString(R.string.live_video_file_name_format));
 
         return dateFormat.format(date);
     }
     public static CameraLive getMInstance() {
-	    return mInstance;
+	return mInstance;
     }
     @Override
-	public void onCreate(Bundle icicle) {
-	    super.onCreate(icicle);
-		CameraLive.mInstance = this;
+    public void onCreate(Bundle icicle) {
+	super.onCreate(icicle);
+	CameraLive.mInstance = this;
 	if(DEBUG) Log.d(TAG,"onCreate in");
 	mIsCRUISEBoard = "cruise".equalsIgnoreCase(Build.BOARD);
 	requestWindowFeature(Window.FEATURE_PROGRESS);
@@ -355,17 +353,17 @@ public class CameraLive extends ActivityBase
 
 	if (mIsCRUISEBoard) {
 	    if (mOpenCameraFail || mCameraDisabled) {
-		    Intent intent = new Intent(CAMERA_ACTION_ERROR);
-		    intent.setPackage(PACKAGE_NAME);
-		    intent.putExtra("error", getString(R.string.video_record_error));
-		    sendBroadcast(intent);
+		Intent intent = new Intent(CAMERA_ACTION_ERROR);
+		intent.setPackage(PACKAGE_NAME);
+		intent.putExtra("error", getString(R.string.video_record_error));
+		sendBroadcast(intent);
 		mHasError = true;
 		finish();
 		return;
 	    }
 
-	   bindService(new Intent("com.ingenic.glass.incall.AudioModeService"), 
-			     mServiceConnection, Context.BIND_AUTO_CREATE);
+	    bindService(new Intent("com.ingenic.glass.incall.AudioModeService"), 
+			mServiceConnection, Context.BIND_AUTO_CREATE);
 
 	    if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
 		requestPlayTTS(getString(R.string.tts_live_video_record_start));
@@ -373,12 +371,12 @@ public class CameraLive extends ActivityBase
 	}
     }
     @Override
-	public void onStart() {
+    public void onStart() {
         super.onStart();
 	if(DEBUG) Log.d(TAG,"--onStart in");
     }
     @Override
-	public void onStop() {
+    public void onStop() {
         super.onStop();
 	if(DEBUG) Log.d(TAG,"--onStop in");
     }
@@ -405,7 +403,7 @@ public class CameraLive extends ActivityBase
         mResetEffect = getIntent().getBooleanExtra(RESET_EFFECT_EXTRA, true);
         resetEffect();
 	IntentFilter filter =
-                new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+	    new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         mBatteryReceiver = new BatteryBroadcastReceiver();
 	registerReceiver(mBatteryReceiver, filter);
         /*
@@ -459,45 +457,6 @@ public class CameraLive extends ActivityBase
         mReceiver = new MyBroadcastReceiver();
         intentFilter.addAction(CAMERA_ACTION_STOP);
         registerReceiver(mReceiver, intentFilter);
-
-        mStorageSpace = Storage.getAvailableSpace();
-        mHandler.postDelayed(new Runnable() {
-		public void run() {
-		    showStorageHint();
-		}
-	    }, 200);
-    }
-
-    private OnScreenHint mStorageHint;
-
-    private void updateAndShowStorageHint() {
-        mStorageSpace = Storage.getAvailableSpace();
-        showStorageHint();
-    }
-
-    private void showStorageHint() {
-        String errorMessage = null;
-        if (mStorageSpace == Storage.UNAVAILABLE) {
-            errorMessage = getString(R.string.no_storage);
-        } else if (mStorageSpace == Storage.PREPARING) {
-            errorMessage = getString(R.string.preparing_sd);
-        } else if (mStorageSpace == Storage.UNKNOWN_SIZE) {
-            errorMessage = getString(R.string.access_sd_fail);
-        } else if (mStorageSpace < Storage.LOW_STORAGE_THRESHOLD) {
-            errorMessage = getString(R.string.spaceIsLow_content);
-        }
-
-        if (errorMessage != null) {
-            if (mStorageHint == null) {
-                mStorageHint = OnScreenHint.makeText(this, errorMessage);
-            } else {
-                mStorageHint.setText(errorMessage);
-            }
-            mStorageHint.show();
-        } else if (mStorageHint != null) {
-            mStorageHint.cancel();
-            mStorageHint = null;
-        }
     }
 
     private void readVideoPreferences(boolean hasAudio) {
@@ -525,8 +484,7 @@ public class CameraLive extends ActivityBase
         // Set video duration limit. The limit is read from the preference,
         // unless it is specified in the intent.
         if (intent.hasExtra(MediaStore.EXTRA_DURATION_LIMIT)) {
-            int seconds =
-		intent.getIntExtra(MediaStore.EXTRA_DURATION_LIMIT, 0);
+            int seconds = intent.getIntExtra(MediaStore.EXTRA_DURATION_LIMIT, 0);
             mMaxVideoDurationInMs = 1000 * seconds;
         } else {
             mMaxVideoDurationInMs = CameraSettings.DEFAULT_VIDEO_DURATION;
@@ -633,11 +591,6 @@ public class CameraLive extends ActivityBase
 	    unregisterReceiver(mBatteryReceiver);
 	    mBatteryReceiver = null;
 	}
-
-        if (mStorageHint != null) {
-            mStorageHint.cancel();
-            mStorageHint = null;
-        }
 
 	try {
 	    if (mService != null) {
@@ -753,8 +706,6 @@ public class CameraLive extends ActivityBase
         }
 
         // Set output file.
-        // Try Uri in the intent first. If it doesn't exist, use our own
-        // instead.
         if (mVideoFileDescriptor != null) {
             mMediaRecorder.setOutputFile(mVideoFileDescriptor.getFileDescriptor());
         } else {
@@ -764,16 +715,6 @@ public class CameraLive extends ActivityBase
 
         mMediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
 
-        // Set maximum file size.
-        long maxFileSize = mStorageSpace - Storage.LOW_STORAGE_THRESHOLD;
-        if (requestedSizeLimit > 0 && requestedSizeLimit < maxFileSize) {
-            maxFileSize = requestedSizeLimit;
-        }
-
-        try {
-            mMediaRecorder.setMaxFileSize(maxFileSize);
-        } catch (RuntimeException exception) {
-        }
         int rotation = 0;
         if (mOrientation != OrientationEventListener.ORIENTATION_UNKNOWN) {
             CameraInfo info = CameraHolder.instance().getCameraInfo()[mCameraId];
@@ -837,12 +778,6 @@ public class CameraLive extends ActivityBase
             mEffectsRecorder.setOutputFile(mVideoFilename);
         }
 
-        // Set maximum file size.
-        long maxFileSize = mStorageSpace - Storage.LOW_STORAGE_THRESHOLD;
-        if (requestedSizeLimit > 0 && requestedSizeLimit < maxFileSize) {
-            maxFileSize = requestedSizeLimit;
-        }
-        mEffectsRecorder.setMaxFileSize(maxFileSize);
         mEffectsRecorder.setMaxDuration(mMaxVideoDurationInMs);
     }
 
@@ -933,10 +868,10 @@ public class CameraLive extends ActivityBase
     public void onError(MediaRecorder mr, int what, int extra) {
         if(DEBUG) Log.e(TAG, "MediaRecorder error. what=" + what + ". extra=" + extra);
 	if (mIsCRUISEBoard) {
-		Intent intent = new Intent(CAMERA_ACTION_ERROR);
-		intent.setPackage(PACKAGE_NAME);
-		intent.putExtra("ErrorInfo", getString(R.string.video_record_error));
-		sendBroadcast(intent);
+	    Intent intent = new Intent(CAMERA_ACTION_ERROR);
+	    intent.setPackage(PACKAGE_NAME);
+	    intent.putExtra("ErrorInfo", getString(R.string.video_record_error));
+	    sendBroadcast(intent);
 	    stopVideoRecording();
 	    mHasError = true;
 	    return;
@@ -944,10 +879,9 @@ public class CameraLive extends ActivityBase
         if (what == MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN) {
             // We may have run out of space on the sdcard.
             stopVideoRecording();
-            updateAndShowStorageHint();
         } else {
-		mHasError = true;
-		finish();
+	    mHasError = true;
+	    finish();
 	}
     }
 
@@ -997,12 +931,6 @@ public class CameraLive extends ActivityBase
 	    readVideoPreferences(mAudioManager.getMode() != AudioManager.MODE_IN_CALL);
 
         if(DEBUG) Log.d(TAG, "startVideoRecording");
-        updateAndShowStorageHint();
-        if (mStorageSpace < Storage.LOW_STORAGE_THRESHOLD) {
-            if(DEBUG)Log.d(TAG, "Storage issue, ignore the start request");
-            return;
-        }
-
         if (effectsActive()) {
             initializeEffectsRecording();
             if (mEffectsRecorder == null) {
@@ -1049,18 +977,18 @@ public class CameraLive extends ActivityBase
 	runOnUiThread(new Runnable(){
 		@Override
 		public void run() {
-			if (recording) {
-				mRecordingTimeView.setText("");
+		    if (recording) {
+			mRecordingTimeView.setText("");
 
-				if(mWindowsHeight >=480)
-					mRecordingTimeView.setTextSize(50);
-				else
-					mRecordingTimeView.setTextSize(30);
+			if(mWindowsHeight >=480)
+			    mRecordingTimeView.setTextSize(50);
+			else
+			    mRecordingTimeView.setTextSize(30);
 
-				mRecordingTimeView.setVisibility(View.VISIBLE);
-			} else {
-				mRecordingTimeView.setVisibility(View.GONE);
-			}
+			mRecordingTimeView.setVisibility(View.VISIBLE);
+		    } else {
+			mRecordingTimeView.setVisibility(View.GONE);
+		    }
 		}
 	    });
     }
@@ -1201,14 +1129,14 @@ public class CameraLive extends ActivityBase
 
         long actualNextUpdateDelay = targetNextUpdateDelay - (delta % targetNextUpdateDelay);
         mHandler.sendEmptyMessageDelayed(
-					 UPDATE_RECORD_TIME, actualNextUpdateDelay);
+	    UPDATE_RECORD_TIME, actualNextUpdateDelay);
     }
 
     private static boolean isSupported(String value, List<String> supported) {
         return supported == null ? false : supported.indexOf(value) >= 0;
     }
     @Override
-	public void onEffectsUpdate(int effectId, int effectMsg) {
+    public void onEffectsUpdate(int effectId, int effectMsg) {
         if(DEBUG) Log.d(TAG, "onEffectsUpdate in");
         if (effectMsg == EffectsRecorder.EFFECT_MSG_EFFECTS_STOPPED) {
             // Effects have shut down. Hide learning message if any,
@@ -1231,21 +1159,21 @@ public class CameraLive extends ActivityBase
     }
 
     @Override
-	public synchronized void onEffectsError(Exception exception, String fileName) {
-	    // TODO: Eventually we may want to show the user an error dialog, and then restart the
-	    // camera and encoder gracefully. For now, we just delete the file and bail out.
-	    if (fileName != null && new File(fileName).exists()) {
-		deleteVideoFile(fileName);
-	    }
-	    if (exception instanceof MediaRecorderStopException) {
-		Log.w(TAG, "Problem recoding video file. Removing incomplete file.");
-		return;
-	    }
-	    throw new RuntimeException("Error during recording!", exception);
+    public synchronized void onEffectsError(Exception exception, String fileName) {
+	// TODO: Eventually we may want to show the user an error dialog, and then restart the
+	// camera and encoder gracefully. For now, we just delete the file and bail out.
+	if (fileName != null && new File(fileName).exists()) {
+	    deleteVideoFile(fileName);
 	}
+	if (exception instanceof MediaRecorderStopException) {
+	    Log.w(TAG, "Problem recoding video file. Removing incomplete file.");
+	    return;
+	}
+	throw new RuntimeException("Error during recording!", exception);
+    }
 
     @Override
-	public void onConfigurationChanged(Configuration config) {
+    public void onConfigurationChanged(Configuration config) {
         super.onConfigurationChanged(config);
         if(DEBUG)Log.d(TAG, "onConfigurationChanged in");
     }
@@ -1322,20 +1250,20 @@ public class CameraLive extends ActivityBase
 	}
 	    
 	if (mIsCRUISEBoard) {
-		if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
-		    String tts = null;
-		    if (mHasError) {
-			if (mCurrentVideoFilename != null) 
-				deleteVideoFile(mCurrentVideoFilename);
-			tts = getString(R.string.tts_live_video_record_error);
-		    } else 
-			tts = getString(R.string.tts_live_video_record_stop);
-		    requestPlayTTS(tts);
-		    mHasError = false;
-		}
+	    if (mAudioManager.getMode() != AudioManager.MODE_IN_CALL) {
+		String tts = null;
+		if (mHasError) {
+		    if (mCurrentVideoFilename != null) 
+			deleteVideoFile(mCurrentVideoFilename);
+		    tts = getString(R.string.tts_live_video_record_error);
+		} else 
+		    tts = getString(R.string.tts_live_video_record_stop);
+		requestPlayTTS(tts);
+		mHasError = false;
+	    }
 	} else if (!finished) {
-		Intent intent=new Intent(CameraLive.this, GalleryPicker.class);
-		startActivity(intent);	
+	    Intent intent=new Intent(CameraLive.this, GalleryPicker.class);
+	    startActivity(intent);	
 	}
 
 	if (!finished)
@@ -1345,7 +1273,7 @@ public class CameraLive extends ActivityBase
     private void setCameraIPUDirect(int mode){
 	Log.d(TAG, "set camera_ipu_direct record and restart preview.");
 	if (mCameraDevice == null)
-		return;
+	    return;
 	Parameters p = mCameraDevice.getParameters();
 	p.set("preview_mode", mode);
 	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);
@@ -1386,8 +1314,8 @@ public class CameraLive extends ActivityBase
 	}
     }
     @Override
-	protected void onRecognizeWakeup() {
-	    requestUnRegister();
+    protected void onRecognizeWakeup() {
+	requestUnRegister();
 	if(DEBUG)Log.d(TAG, "onRecognizeWakeup");
 	finish();
     }
