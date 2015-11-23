@@ -38,6 +38,7 @@
 	    <intent-filter android:priority="100">
 	      <action android:name="android.media.action.IMAGE_CAPTURE"/>
 	      <action android:name="android.media.action.VIDEO_CAPTURE"/>
+	      <action android:name="ingenic.action.camera.live.start"/>
 	      <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>

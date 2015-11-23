@@ -343,10 +343,10 @@ public class CameraLive extends ActivityBase
 	if (mIsCRUISEBoard) {
 	    mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-	    // finish video recording
-	    if (VideoActivity.isRecording()) {
-		VideoActivity.getMInstance().finish();
-	    }
+	    // // finish video recording
+	    // if (VideoActivity.isRecording()) {
+	    // 	VideoActivity.getMInstance().finish();
+	    // }
 	}
 
 	init();

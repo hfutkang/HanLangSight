@@ -80,6 +80,7 @@ import com.ingenic.glass.camera.util.StorageSpaceUtil;
 import android.os.BatteryManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
+import com.ingenic.glass.camera.live.CameraLive;
 /**
  * The Camcorder activity.
  */
@@ -1471,6 +1472,10 @@ public class VideoActivity extends ActivityBase
 
     @Override
     public void finish() {
+	finish(false);
+    }
+
+    public void finish(boolean startLive) {
 	boolean finished;
 	if (mFinished) return;
 	synchronized (mLock) {	
@@ -1519,6 +1524,13 @@ public class VideoActivity extends ActivityBase
 	Intent in = new Intent("cn.ingenic.glass.ACTION_MEDIA_VIDEO_FINISH");
 	in.setPackage("com.smartglass.device");
 	sendBroadcast(in);
+
+	if(startLive){
+	    Log.d(TAG,"start live");
+	    Intent intent=new Intent(this, CameraLive.class);
+	    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	    startActivity(intent);	
+	}
 
 	if (!finished)
 	    super.finish();

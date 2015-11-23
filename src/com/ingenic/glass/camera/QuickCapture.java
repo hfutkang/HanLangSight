@@ -28,6 +28,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.Gravity;
+import android.content.Intent;
 import android.widget.Toast;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -36,6 +37,7 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.content.ContentValues;
+import com.ingenic.glass.camera.live.CameraLive;
 import com.ingenic.glass.camera.gallery.ImageGetter;
 import com.ingenic.glass.camera.gallery.BitmapManager;
 import com.ingenic.glass.camera.util.Exif;
@@ -251,9 +253,20 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
     }
 
     private void finish() {
+	finish(false);
+    }
+    public void finish(boolean startLive) {
 	if (mWindowManager != null)
 	    mWindowManager.removeView(mRootView);
 	closeCamera();
+
+
+	if(startLive){
+	    Log.d(TAG,"start live");
+	    Intent intent=new Intent(mContext, CameraLive.class);
+	    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	    mContext.startActivity(intent);	
+	}
 	mContext = null;
 	QuickCapture.mInstance = null;
     }
