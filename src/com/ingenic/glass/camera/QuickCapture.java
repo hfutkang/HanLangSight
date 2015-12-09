@@ -45,6 +45,7 @@ import com.ingenic.glass.camera.util.Util;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import com.ingenic.glass.voicerecognizer.api.VoiceRecognizer;
+import com.ingenic.glass.voicerecognizer.api.VoiceRecognizerListener;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.ImageColumns;
 
@@ -95,7 +96,7 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	mContext = context;
 	QuickCapture.mInstance = this;
 
-	mVoiceRecognizer = new VoiceRecognizer(VoiceRecognizer.REC_TYPE_COMMAND, null);
+	mVoiceRecognizer = new VoiceRecognizer(VoiceRecognizer.REC_TYPE_COMMAND, new VoiceRecognizerListener());
 	mVoiceRecognizer.setAppName("QuickCapture");
     }
 
