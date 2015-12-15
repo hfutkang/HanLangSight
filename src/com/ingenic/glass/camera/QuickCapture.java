@@ -398,7 +398,7 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	mQuickCapture_HALStoreJpeg_fullpath = Storage.generate_QuickPicturefullname();
 	IS_USE_QuickCapture_HALStore = true;
 	mParameters.set("quickcapture-halstore-dir", mQuickCapture_HALStoreJpeg_fullpath);
-
+	mParameters.set("time_water_mark", CameraAppImpl.getWaterMarkMode()); // 添加水印效果
 	mParameters.setPictureSize(3264, 2448);
 	mParameters.setPreviewSize(640, 480);
 	mCameraDevice.setParameters(mParameters);

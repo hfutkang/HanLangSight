@@ -1541,6 +1541,7 @@ public class VideoActivity extends ActivityBase
 		return;
 	Parameters p = mCameraDevice.getParameters();
 	p.set("preview_mode", mode);
+	p.set("time_water_mark", CameraAppImpl.getWaterMarkMode()); // 添加水印效果
 	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);	
 	mCameraDevice.setParameters(p);	
     }
