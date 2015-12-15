@@ -81,6 +81,10 @@ import android.os.BatteryManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import com.ingenic.glass.camera.live.CameraLive;
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
+
+
 /**
  * The Camcorder activity.
  */
@@ -1541,7 +1545,14 @@ public class VideoActivity extends ActivityBase
 		return;
 	Parameters p = mCameraDevice.getParameters();
 	p.set("preview_mode", mode);
-	p.set("time_water_mark", CameraAppImpl.getWaterMarkMode()); // 添加水印效果
+	try{
+		int pic_watermark = Settings.System.getInt(getContentResolver(),"pic_watermark");
+		int video_watermark = Settings.System.getInt(getContentResolver(),"video_watermark");
+		p.set("time_water_mark", CameraAppImpl.getWaterMarkMode(pic_watermark,video_watermark)); 
+	}catch(SettingNotFoundException  e){
+		e.printStackTrace();
+	}
+	
 	p.setPreviewSize(mDesiredPreviewWidth,mDesiredPreviewHeight);	
 	mCameraDevice.setParameters(p);	
     }

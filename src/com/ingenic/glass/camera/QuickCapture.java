@@ -48,6 +48,9 @@ import com.ingenic.glass.voicerecognizer.api.VoiceRecognizer;
 import com.ingenic.glass.voicerecognizer.api.VoiceRecognizerListener;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.ImageColumns;
+import android.provider.Settings;
+import android.provider.Settings.SettingNotFoundException;
+
 
 /** The QuickCapture class which can take pictures quickly. */
 public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Camera.ErrorCallback  {
@@ -398,7 +401,13 @@ public class QuickCapture implements SurfaceHolder.Callback, android.hardware.Ca
 	mQuickCapture_HALStoreJpeg_fullpath = Storage.generate_QuickPicturefullname();
 	IS_USE_QuickCapture_HALStore = true;
 	mParameters.set("quickcapture-halstore-dir", mQuickCapture_HALStoreJpeg_fullpath);
-	mParameters.set("time_water_mark", CameraAppImpl.getWaterMarkMode()); // 添加水印效果
+	try{
+		int pic_watermark = Settings.System.getInt(mContext.getContentResolver(),"pic_watermark");
+		int video_watermark = Settings.System.getInt(mContext.getContentResolver(),"video_watermark");
+		mParameters.set("time_water_mark", CameraAppImpl.getWaterMarkMode(pic_watermark,video_watermark));
+	}catch(SettingNotFoundException  e){
+		e.printStackTrace();
+	}
 	mParameters.setPictureSize(3264, 2448);
 	mParameters.setPreviewSize(640, 480);
 	mCameraDevice.setParameters(mParameters);

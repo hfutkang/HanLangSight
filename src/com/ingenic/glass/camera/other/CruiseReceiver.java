@@ -27,13 +27,6 @@ public class CruiseReceiver extends BroadcastReceiver{
 			
 			editor.putInt("CarMode", mode?1:0);
 			editor.commit();
-		}else if (intent.getAction().equals("com.ingenic.glass.camera.other.water_mark")){
-		    boolean pic_enable = intent.getBooleanExtra("pic_enable",false);
-		    boolean video_enable = intent.getBooleanExtra("video_enable",false);
-		    editor.putBoolean("pic_enable", pic_enable);
-		    editor.putBoolean("video_enable", video_enable);
-		    editor.commit();
-
 		}
 	}
 }

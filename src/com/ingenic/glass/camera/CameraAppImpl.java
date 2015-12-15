@@ -45,14 +45,26 @@ public class CameraAppImpl extends Application {
 	// 5. 低功耗显示录像
 	public static final int LOW_POWER_DISPLAY_VIDEO = 0x0f;
 
-        // 1.没有日期时间水印
-        public static final int NO_WATER_MARK = 0x00;
-        // 2. 只有照片添加日期时间水印
-        public static final int PICTURE_WATER_MARK = 0x03;
-        // 3. 只有视频添加日期时间水印
-        public static final int VIDEO_WATER_MARK = 0x05;
-        // 4. 照片和视频添加时间日期水印
-        public static final int PICTURE_VIDEO_WATER_MARK = 0x07;
+	// 1. 没有日期时间水印 
+	public static final int NO_WATER_MARK = 0x00;
+
+	// 2. 只有照片添加日期时间水印
+	public static final int PICTURE_DATA_TIME_WATER_MARK = 0x03;
+
+	// 3. 只有照片添加日期时间水印和蓝牙名称水印
+	public static final int PICTURE_DATA_TIME_AND_BT_NAME_WATER_MARK = 0x07;
+	
+	// 4. 只有视频添加日期时间水印
+	public static final int VIDEO_DATA_TIME_WATER_MARK = 0x09;
+
+	// 5. 只有视频添加日期时间水印和蓝牙名称水印
+	public static final int VIDEO_DATA_TIME_AND_BT_NAME_WATER_MARK = 0x19;
+
+	// 6. 照片和视频添加日期时间水印
+	public static final int PICTURE_VIDEO_DATA_TIME_WATER_MARK = 0x0b;
+
+	// 7. 照片和视频添加日期时间水印和蓝牙名称水印
+	public static final int PICTURE_VIDEO_DATA_TIME_AND_BT_NAME_WATER_MARK = 0x1f;
        
 
         private final int MSG_RELEASE_WAKE_LOCK = 1;
@@ -60,7 +72,9 @@ public class CameraAppImpl extends Application {
 
         private WakeLock  mWakeLock;
 
-        private static SharedPreferences sharedPreferences;
+        private static int mPic_watermark;
+
+	private static int mVideo_watermark;
     
         private Handler mHandler = new Handler(){
 		@Override
@@ -79,11 +93,9 @@ public class CameraAppImpl extends Application {
 		super.onCreate();
 		Util.initialize(this);
 		PowerManager manager = ((PowerManager) getSystemService(POWER_SERVICE));  
-		mWakeLock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"camera");
-		sharedPreferences = getSharedPreferences("com.ingenic.glass.video_record_preferences", 
-							 Activity.MODE_PRIVATE);  
+		mWakeLock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"camera");	 
 	}
-
+	
         public void acquireWakeLock(){
 	    Log.d(TAG,"Wakelock has acquire");
 	    mWakeLock.acquire(); 
@@ -99,21 +111,17 @@ public class CameraAppImpl extends Application {
 	    mHandler.sendEmptyMessageDelayed(MSG_RELEASE_WAKE_LOCK, timeout);
 	}
     
-        public static int getWaterMarkMode(){
-	    
-	    boolean pic_enable  = sharedPreferences.getBoolean("pic_enable", true);
-	    boolean video_enable  = sharedPreferences.getBoolean("video_enable", true);
-	    Log.d(TAG,"pic_enable = " + pic_enable + " video_enable = " + video_enable );
-	    if (pic_enable && video_enable){
-		return PICTURE_VIDEO_WATER_MARK;	    
-	    }else if(pic_enable && !video_enable){
-		return PICTURE_WATER_MARK;
-	    }else if (!pic_enable && video_enable){
-		return VIDEO_WATER_MARK;
-	    }
-	    
-	    return NO_WATER_MARK; 
-    }
+        public static int getWaterMarkMode(int pic_watermark, int video_watermark){
+		Log.d(TAG,"mPic_watermark = " + mPic_watermark + "mVideo_watermark = " + mVideo_watermark);
+		if (pic_watermark == 1 && video_watermark == 1){
+			return PICTURE_VIDEO_DATA_TIME_AND_BT_NAME_WATER_MARK;	    
+		}else if(pic_watermark == 1 && video_watermark == 0){
+			return PICTURE_DATA_TIME_AND_BT_NAME_WATER_MARK;
+		}else if (pic_watermark == 0 && video_watermark == 1){
+			return VIDEO_DATA_TIME_AND_BT_NAME_WATER_MARK;
+		}   
+		return NO_WATER_MARK; 
+	}
 }
 
 

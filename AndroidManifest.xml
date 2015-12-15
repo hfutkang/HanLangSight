@@ -29,7 +29,6 @@
 	    <intent-filter>
 	      <action android:name="com.ingenic.glass.camera.other.subsection"/>
 	      <action android:name="com.ingenic.glass.camera.other.storage_mode"/>
-	      <action android:name="com.ingenic.glass.camera.other.water_mark"/>
 	      <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
