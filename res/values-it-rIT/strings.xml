@@ -389,14 +389,14 @@
 
     <string name="video_record_error">Camera error</string>
     <!-- tts -->
-    <string name="tts_take_picture_failed">take picture failed, retry</string>
-    <string name="tts_video_record_start">Start record</string>
-    <string name="tts_video_record_stop">Stop record</string>
-    <string name="tts_video_record_error">Record error,retry</string>
-    <string name="tts_video_record_no_storage">Not enough disk space ,stop record</string>
-    <string name="tts_video_record_lowpower">lower power ,stop record</string>
-    <string name="tts_take_picture_lowpower">lower power,take picture failed</string>
-    <string name="tts_live_video_record_start">Start live</string>
-    <string name="tts_live_video_record_stop">Stop live</string>
-    <string name="tts_live_video_record_error">Camera live error</string>
+    <string name="tts_take_picture_failed">fare una foto non riuscito, tentativo</string>
+    <string name="tts_video_record_start">inizia a registrare</string>
+    <string name="tts_video_record_stop">smettila di cronaca</string>
+    <string name="tts_video_record_error">errore nel record, riprova</string>
+    <string name="tts_video_record_no_storage">pi ù potere, smettila di cronaca</string>
+    <string name="tts_video_record_lowpower">più potere, smettila di cronaca</string>
+    <string name="tts_take_picture_lowpower">più potere, foto fallito</string>
+    <string name="tts_live_video_record_start">inizia a vivere</string>
+    <string name="tts_live_video_record_stop">smettila di vivere</string>
+    <string name="tts_live_video_record_error">telecamera vivere errore</string>
 </resources>
