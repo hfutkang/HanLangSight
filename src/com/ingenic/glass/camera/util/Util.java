@@ -54,6 +54,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -663,7 +664,7 @@ public class Util {
         private int mSameSecondCount;
 
         public ImageFileNamer(String format) {
-            mFormat = new SimpleDateFormat(format);
+		mFormat = new SimpleDateFormat(format, Locale.US);
         }
 
         public String generateName(long dateTaken) {

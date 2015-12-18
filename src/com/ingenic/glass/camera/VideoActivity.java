@@ -54,6 +54,7 @@ import android.widget.GestureDetector;
 import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.filterpacks.videosink.MediaRecorderStopException;
 
+import java.util.Locale;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -319,9 +320,7 @@ public class VideoActivity extends ActivityBase
 	if (strFormat == null) {
         	strFormat = getString(R.string.video_file_name_format);
         }
-
-        SimpleDateFormat dateFormat = new SimpleDateFormat(strFormat);
-
+        SimpleDateFormat dateFormat = new SimpleDateFormat(strFormat, Locale.US);
         return dateFormat.format(date);
     }
 
@@ -989,7 +988,7 @@ public class VideoActivity extends ActivityBase
 
     private void generateVideoFilename(int outputFileFormat) {
         long dateTaken = System.currentTimeMillis();
-        String title = createName(dateTaken);
+	String title = createName(dateTaken);
         // Used when emailing.
         String filename = title + convertOutputFormatToFileExt(outputFileFormat);
         String mime = convertOutputFormatToMimeType(outputFileFormat);

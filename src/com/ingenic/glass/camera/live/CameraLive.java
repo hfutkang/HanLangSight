@@ -54,6 +54,7 @@ import android.widget.GestureDetector;
 import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.filterpacks.videosink.MediaRecorderStopException;
 
+import java.util.Locale;
 import java.util.List;
 import java.io.File;
 import java.io.IOException;
@@ -287,8 +288,8 @@ public class CameraLive extends ActivityBase
 
     private String createName(long dateTaken) {
         Date date = new Date(dateTaken);
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-	    getString(R.string.live_video_file_name_format));
+        SimpleDateFormat dateFormat = new 
+		SimpleDateFormat(getString(R.string.live_video_file_name_format), Locale.US);
 
         return dateFormat.format(date);
     }
